@@ -7,12 +7,16 @@ type UseLenisOptions = {
   enabled: boolean;
   lerp?: number;
   duration?: number;
+  smoothWheel?: boolean;
 };
+
+const expoOut = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
 export function useLenis({
   enabled,
-  lerp = 0.08,
-  duration = 1.2,
+  lerp = 0.1,
+  duration = 1.25,
+  smoothWheel = false,
 }: UseLenisOptions) {
   const ref = useRef<Lenis | null>(null);
 
@@ -22,7 +26,10 @@ export function useLenis({
     const lenis = new Lenis({
       lerp,
       duration,
-      smoothWheel: true,
+      smoothWheel,
+      easing: expoOut,
+      wheelMultiplier: 1,
+      touchMultiplier: 1,
     });
     ref.current = lenis;
 
@@ -38,7 +45,7 @@ export function useLenis({
       lenis.destroy();
       ref.current = null;
     };
-  }, [enabled, lerp, duration]);
+  }, [enabled, lerp, duration, smoothWheel]);
 
   return ref;
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { PALETTE, FONTS } from "@/constants/colors";
 import type { Accent } from "@/types";
 
@@ -9,29 +8,23 @@ type PledgeConstellationProps = {
   yourPledge: boolean;
 };
 
-export function PledgeConstellation({ accent, yourPledge }: PledgeConstellationProps) {
-  const dots = useMemo(() => {
-    const arr: {
-      x: number;
-      y: number;
-      brightness: number;
-      size: number;
-      delay: number;
-    }[] = [];
-    const cols = 22;
-    const rows = 6;
-    for (let i = 0; i < cols * rows; i++) {
-      arr.push({
-        x: (i % cols) / (cols - 1),
-        y: Math.floor(i / cols) / (rows - 1),
-        brightness: 0.2 + Math.random() * 0.8,
-        size: 0.6 + Math.random() * 1.4,
-        delay: Math.random() * 4,
-      });
-    }
-    return arr;
-  }, []);
+const cols = 22;
+const rows = 6;
+const dots: {
+  x: number;
+  y: number;
+  brightness: number;
+  size: number;
+  delay: number;
+}[] = Array.from({ length: cols * rows }, (_, i) => ({
+  x: (i % cols) / (cols - 1),
+  y: Math.floor(i / cols) / (rows - 1),
+  brightness: 0.2 + seededUnit(i, 1) * 0.8,
+  size: 0.6 + seededUnit(i, 2) * 1.4,
+  delay: seededUnit(i, 3) * 4,
+}));
 
+export function PledgeConstellation({ accent, yourPledge }: PledgeConstellationProps) {
   const yourIdx = 47;
 
   return (
@@ -97,4 +90,9 @@ export function PledgeConstellation({ accent, yourPledge }: PledgeConstellationP
       </div>
     </div>
   );
+}
+
+function seededUnit(index: number, salt: number) {
+  const x = Math.sin(index * 12.9898 + salt * 78.233) * 43758.5453;
+  return x - Math.floor(x);
 }

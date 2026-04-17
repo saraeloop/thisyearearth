@@ -7,10 +7,12 @@ import type { CardId, VoiceTone } from "@/types";
 
 export function useEarthVoice(cardId: CardId, tone: VoiceTone): string {
   const fallback = VOICE_QUOTES[cardId]?.[tone] ?? "";
-  const [quote, setQuote] = useState(fallback);
+  const key = `${cardId}:${tone}`;
+  const [generated, setGenerated] = useState<{ key: string; quote: string } | null>(
+    null,
+  );
 
   useEffect(() => {
-    setQuote(fallback);
     let cancelled = false;
     const controller = new AbortController();
 
@@ -20,7 +22,7 @@ export function useEarthVoice(cardId: CardId, tone: VoiceTone): string {
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) return;
         const data = (await res.json()) as { quote?: string };
-        if (!cancelled && data.quote) setQuote(data.quote);
+        if (!cancelled && data.quote) setGenerated({ key, quote: data.quote });
       } catch {
         // keep fallback
       }
@@ -30,7 +32,7 @@ export function useEarthVoice(cardId: CardId, tone: VoiceTone): string {
       cancelled = true;
       controller.abort();
     };
-  }, [cardId, tone, fallback]);
+  }, [cardId, tone, key]);
 
-  return quote;
+  return generated?.key === key ? generated.quote : fallback;
 }

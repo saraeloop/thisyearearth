@@ -37,16 +37,26 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [userPledge, setUserPledge] = useState<Pledge | null>(null);
+  const [restoredActive, setRestoredActive] = useState(false);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(ACTIVE_STORAGE_KEY);
-    const parsed = raw ? Number.parseInt(raw, 10) : 0;
-    setActive(clampIndex(parsed));
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const raw = window.localStorage.getItem(ACTIVE_STORAGE_KEY);
+      const parsed = raw ? Number.parseInt(raw, 10) : 0;
+      setActive(clampIndex(parsed));
+      setRestoredActive(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
+    if (!restoredActive) return;
     window.localStorage.setItem(ACTIVE_STORAGE_KEY, String(active));
-  }, [active]);
+  }, [active, restoredActive]);
 
   const next = useCallback(() => {
     setActive((a) => {
