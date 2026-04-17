@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { CARD_IDS } from "@/constants/cards";
 import { ACCENTS } from "@/constants/colors";
 import { CARD_BACKGROUNDS } from "@/constants/backgrounds";
@@ -34,7 +34,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   const [userPledge, setUserPledge] = useState<Pledge | null>(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const lenisRef = useLenis({ enabled: true });
+  const lenisRef = useLenis({ enabled: true, smoothWheel: true });
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -47,7 +47,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
 
   useEffect(() => {
     const unsub = scrollYProgress.on("change", (v) => {
-      const idx = Math.round(v * (N - 1));
+      const idx = Math.max(0, Math.min(N - 1, Math.round(v * (N - 1))));
       setActiveIdx((curr) => (curr === idx ? curr : idx));
     });
     return () => unsub();
@@ -58,12 +58,13 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   const scrollToIndex = useCallback(
     (idx: number) => {
       const clamped = Math.max(0, Math.min(N - 1, idx));
-      const target = clamped * window.innerHeight;
+      const target =
+        (containerRef.current?.offsetTop ?? 0) + clamped * window.innerHeight;
       const lenis = lenisRef.current;
       if (lenis) {
-        lenis.scrollTo(target, { duration: 1.4 });
+        lenis.scrollTo(target, { duration: 1.25 });
       } else {
-        window.scrollTo({ top: target, behavior: "smooth" });
+        window.scrollTo({ top: target });
       }
     },
     [lenisRef],
@@ -101,52 +102,90 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   });
 
   return (
-    <motion.div className="ew-desktop-root" style={{ backgroundColor }}>
-      <DesktopProgressBar progress={scrollYProgress} />
-
-      <div ref={containerRef} className="ew-desktop-scroll">
-        <Section><IntroCard {...sectionProps(0)} /></Section>
-        <Section>
-          <LocationCard
-            {...sectionProps(1)}
-            userLocation={userLocation}
-            onLocationSet={setUserLocation}
-          />
-        </Section>
-        <Section><TempCard {...sectionProps(2)} /></Section>
-        <Section><CO2Card {...sectionProps(3)} /></Section>
-        <Section><IceCard {...sectionProps(4)} /></Section>
-        <Section><ForestCard {...sectionProps(5)} /></Section>
-        <Section>
-          <PledgeCard
-            {...sectionProps(6)}
-            userPledge={userPledge}
-            onPledge={setUserPledge}
-          />
-        </Section>
-        <Section><SpeciesCard {...sectionProps(7)} /></Section>
-        <Section><PlasticCard {...sectionProps(8)} /></Section>
-        <Section><RenewablesCard {...sectionProps(9)} /></Section>
-        <Section>
-          <FinalCard
-            {...sectionProps(10)}
-            userLocation={userLocation}
-            userPledge={userPledge}
-          />
-        </Section>
-      </div>
-
-      <ShareSheet
-        open={shareOpen}
-        cardId={shareCardId}
-        onClose={() => setShareOpen(false)}
+    <div className="ew-desktop-root">
+      <div
+        ref={containerRef}
+        className="ew-desktop-track"
+        style={{ height: `${N * 100}dvh`, position: "relative" }}
       />
 
+      <motion.div className="ew-desktop-stage" style={{ backgroundColor }}>
+        <AnimatePresence mode="wait">
+          {renderCard(activeIdx, {
+            sectionProps,
+            userLocation,
+            setUserLocation,
+            userPledge,
+            setUserPledge,
+          })}
+        </AnimatePresence>
+
+        <ShareSheet
+          open={shareOpen}
+          cardId={shareCardId}
+          onClose={() => setShareOpen(false)}
+        />
+      </motion.div>
+
+      <DesktopProgressBar progress={scrollYProgress} />
       <CustomCursor accent={cursorAccent} />
-    </motion.div>
+    </div>
   );
 }
 
-function Section({ children }: { children: React.ReactNode }) {
-  return <section className="ew-desktop-section">{children}</section>;
+type RenderCardContext = {
+  sectionProps: (idx: number) => {
+    active: number;
+    onNext: () => void;
+    onShare: () => void;
+    grainLevel: number;
+    voiceTone: Tweaks["voice"];
+  };
+  userLocation: Location | null;
+  setUserLocation: (location: Location) => void;
+  userPledge: Pledge | null;
+  setUserPledge: (pledge: Pledge) => void;
+};
+
+function renderCard(idx: number, ctx: RenderCardContext) {
+  const props = ctx.sectionProps(idx);
+  const key = CARD_IDS[idx];
+
+  if (idx === 0) return <IntroCard key={key} {...props} />;
+  if (idx === 1) {
+    return (
+      <LocationCard
+        key={key}
+        {...props}
+        userLocation={ctx.userLocation}
+        onLocationSet={ctx.setUserLocation}
+      />
+    );
+  }
+  if (idx === 2) return <TempCard key={key} {...props} />;
+  if (idx === 3) return <CO2Card key={key} {...props} />;
+  if (idx === 4) return <IceCard key={key} {...props} />;
+  if (idx === 5) return <ForestCard key={key} {...props} />;
+  if (idx === 6) {
+    return (
+      <PledgeCard
+        key={key}
+        {...props}
+        userPledge={ctx.userPledge}
+        onPledge={ctx.setUserPledge}
+      />
+    );
+  }
+  if (idx === 7) return <SpeciesCard key={key} {...props} />;
+  if (idx === 8) return <PlasticCard key={key} {...props} />;
+  if (idx === 9) return <RenewablesCard key={key} {...props} />;
+
+  return (
+    <FinalCard
+      key={key}
+      {...props}
+      userLocation={ctx.userLocation}
+      userPledge={ctx.userPledge}
+    />
+  );
 }

@@ -18,14 +18,15 @@ export function useCountUp({
   const [value, setValue] = useState(from);
 
   useEffect(() => {
+    let raf = 0;
+
     if (to === from) {
-      setValue(to);
-      return;
+      raf = requestAnimationFrame(() => setValue(to));
+      return () => cancelAnimationFrame(raf);
     }
 
     const peak = to + (to - from) * overshoot;
     const start = performance.now();
-    let raf = 0;
 
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / durationMs);

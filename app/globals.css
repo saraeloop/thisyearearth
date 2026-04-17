@@ -71,12 +71,10 @@ body {
 .ew-final-globe { display: none; }
 
 /* ───────────────────────────────────────────────────────────── */
-/* Desktop — lg breakpoint. Vertical Lenis scroll + snap        */
+/* Desktop — lg breakpoint. Vertical Lenis scroll               */
 /* ───────────────────────────────────────────────────────────── */
 @media (min-width: 1024px) {
   html {
-    scroll-snap-type: y mandatory;
-    scroll-behavior: auto;
     overscroll-behavior-y: none;
   }
 
@@ -84,18 +82,17 @@ body {
     position: relative;
   }
 
-  .ew-desktop-scroll {
-    display: flex;
-    flex-direction: column;
+  .ew-desktop-track {
+    position: relative;
   }
 
-  .ew-desktop-section {
+  .ew-desktop-stage {
+    position: fixed;
+    inset: 0;
+    top: 0;
     width: 100vw;
     height: 100dvh;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    position: relative;
-    flex-shrink: 0;
+    overflow: hidden;
   }
 
   /* Billboard typography on every section */

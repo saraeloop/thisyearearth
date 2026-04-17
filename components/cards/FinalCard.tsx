@@ -27,7 +27,7 @@ export function FinalCard({
   userPledge,
 }: FinalCardProps) {
   const pledgeCount = usePledgeCount();
-  const isDesktop = useMediaMin(768);
+  const isDesktop = useMediaMin(1024);
   const closingLine = VOICE_QUOTES.final?.[voiceTone] ?? "";
 
   return (
