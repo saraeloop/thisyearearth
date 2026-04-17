@@ -7,6 +7,7 @@ import type { CardCommonProps, Location } from "@/types";
 import { CardShell } from "./CardShell";
 import { Globe } from "./Globe";
 import { useLocation } from "@/hooks/useLocation";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 type LocationCardProps = CardCommonProps & {
   userLocation: Location | null;
@@ -35,6 +36,7 @@ export function LocationCard({
   const detected = locState.location;
   const detecting = locState.loading;
   const [picking, setPicking] = useState(false);
+  const isDesktop = useMediaMin(1024);
 
   const handleDetect = async () => {
     const loc = await locState.detect();
@@ -168,8 +170,10 @@ export function LocationCard({
         style={{
           position: "absolute",
           bottom: 110,
-          left: 32,
-          right: 32,
+          left: isDesktop ? "50%" : 32,
+          right: isDesktop ? "auto" : 32,
+          width: isDesktop ? "min(480px, calc(100vw - 96px))" : "auto",
+          transform: isDesktop ? "translateX(-50%)" : undefined,
           zIndex: 15,
         }}
       >

@@ -7,6 +7,7 @@ import { CardShell } from "./CardShell";
 import { MintedReceipt } from "./MintedReceipt";
 import { MintButton } from "@/components/ui/MintButton";
 import { useMintPledge } from "@/hooks/usePledge";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 type PledgeCardProps = CardCommonProps & {
   userPledge: Pledge | null;
@@ -36,6 +37,7 @@ export function PledgeCard({
   const [writing, setWriting] = useState(false);
   const minted = !!userPledge?.minted;
   const { mint, minting } = useMintPledge();
+  const isDesktop = useMediaMin(1024);
 
   const pledgeText = useMemo(() => {
     if (writing) return custom;
@@ -112,8 +114,10 @@ export function PledgeCard({
             style={{
               position: "absolute",
               top: 340,
-              left: 24,
-              right: 24,
+              left: isDesktop ? "50%" : 24,
+              right: isDesktop ? "auto" : 24,
+              width: isDesktop ? "min(560px, calc(100vw - 96px))" : "auto",
+              transform: isDesktop ? "translateX(-50%)" : undefined,
               zIndex: 10,
             }}
           >
@@ -248,8 +252,10 @@ export function PledgeCard({
             style={{
               position: "absolute",
               bottom: 80,
-              left: 32,
-              right: 32,
+              left: isDesktop ? "50%" : 32,
+              right: isDesktop ? "auto" : 32,
+              width: isDesktop ? "min(560px, calc(100vw - 96px))" : "auto",
+              transform: isDesktop ? "translateX(-50%)" : undefined,
               zIndex: 15,
             }}
           >
