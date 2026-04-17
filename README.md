@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Earth Wrapped · MMXXVI
 
-## Getting Started
+A letter from the planet. Eleven cards. One year. Signed, Earth.
 
-First, run the development server:
+Interactive year-in-review experience delivered as an 11-card story: global temperature anomaly, atmospheric CO₂, ice loss, forest loss, biodiversity, plastic, renewables — plus interactive cards for location, pledges (minted to an on-chain ledger), and a closing constellation of everyone who read tonight.
+
+## Stack
+
+- **Next.js 16** (app router, Turbopack, React 19)
+- **TypeScript** (strict)
+- **Tailwind CSS v4**
+- **Framer Motion** — every animation
+- **Neon** (`@neondatabase/serverless`) — pledges + locations
+- **Solana** (stubbed) — pledge tx hashes
+- **Gemini** — dynamic Earth quotes (optional, falls back to static lines)
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+All optional — app runs fully without them (fallback data, in-memory store, stub tx hashes).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# .env.local
+GEMINI_API_KEY=...        # enables tone-variant quotes via /api/earth-voice
+DATABASE_URL=postgres://... # Neon connection string for pledges + locations
+```
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                  routes + API handlers
+  api/co2/            server-side NOAA Mauna Loa fetch
+  api/earth-voice/    Gemini proxy (tone-variant quotes)
+  api/pledges/        GET count · POST mint
+components/
+  cards/              one file per card — all use CardShell
+  ui/                 CardShell, ProgressBar, ShareSheet, MintButton, SwipeContainer
+  Story.tsx           orchestrator (nav, swipe, keyboard, persistence)
+constants/            card ids, colors, animation variants, endpoints, copy
+hooks/                useSwipe, useCountUp, useLocation, useEarthVoice, useCo2, usePledge
+lib/
+  api/                co2.ts, gemini.ts (server-only)
+  db/                 Neon clients — pledges.ts, locations.ts
+  solana/             mint.ts (stubbed tx hashes)
+types/                shared types with barrel index — CardId, Accent, Location, Pledge, ClimateData, CardData, Tweaks, VoiceTone
+config/site.ts        site metadata
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Conventions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Components never call APIs directly — always through hooks.
+- `lib/` is pure TypeScript, no React.
+- All magic strings live in `constants/`; all external URLs in `constants/endpoints.ts`.
+- Gemini calls proxied through `app/api/earth-voice/route.ts`. CO₂ fetched server-side via `app/api/co2/route.ts`.
+- Every card uses `CardShell`. Single responsibility per file.
+- Shared types (used in >1 file) live in `types/` with a barrel. Single-use types colocate in the file that owns them.
+- Component prop types are named `{ComponentName}Props` — never a generic `Props`.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev     # dev server
+npm run build   # production build + type check
+npm start       # run production build
+npm run lint    # eslint
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Navigation
+
+- `←` / `→` · arrow keys
+- `space` · advance
+- swipe on touch
+- tap sides (on stat cards)
+- interactive cards: location, pledge, final — advance via in-card button
