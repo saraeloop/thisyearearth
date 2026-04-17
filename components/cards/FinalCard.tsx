@@ -5,8 +5,10 @@ import type { CardCommonProps, Location, Pledge } from "@/types";
 import { VOICE_QUOTES } from "@/constants/quotes";
 import { CardShell } from "./CardShell";
 import { PledgeConstellation } from "./PledgeConstellation";
+import { FinalGlobe } from "./FinalGlobe";
 import { HorizonLine } from "@/components/ui/CardTypography";
 import { usePledgeCount } from "@/hooks/usePledge";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 type FinalCardProps = CardCommonProps & {
   userLocation: Location | null;
@@ -25,6 +27,7 @@ export function FinalCard({
   userPledge,
 }: FinalCardProps) {
   const pledgeCount = usePledgeCount();
+  const isDesktop = useMediaMin(768);
   const closingLine = VOICE_QUOTES.final?.[voiceTone] ?? "";
 
   return (
@@ -78,7 +81,19 @@ export function FinalCard({
         {closingLine}
       </div>
 
-      <PledgeConstellation accent={accent} yourPledge={!!userPledge?.minted} />
+      {!isDesktop && (
+        <div className="ew-final-constellation">
+          <PledgeConstellation accent={accent} yourPledge={!!userPledge?.minted} />
+        </div>
+      )}
+      {isDesktop && (
+        <div className="ew-final-globe">
+          <FinalGlobe
+            accent={accent}
+            locations={userLocation ? [userLocation] : []}
+          />
+        </div>
+      )}
 
       <div
         style={{

@@ -5,6 +5,7 @@ import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
 
 const accent = ACCENTS.forest;
@@ -21,7 +22,8 @@ export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: C
       onShare={onShare}
     >
       <StatBlock accent={accent} underline="hectares of forest" fontSize={190}>
-        14.9<span style={{ color: accent.hex, fontSize: 130 }}>M</span>
+        <AnimatedNumber value={14.9} decimals={1} />
+        <span style={{ color: accent.hex, fontSize: 130 }}>M</span>
       </StatBlock>
 
       <svg

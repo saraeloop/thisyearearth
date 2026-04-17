@@ -5,6 +5,7 @@ import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
 
 const accent = ACCENTS.ice;
@@ -27,7 +28,8 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
         fontSize={200}
         translateY={-20}
       >
-        1.17<span style={{ color: accent.hex }}>T</span>
+        <AnimatedNumber value={1.17} decimals={2} />
+        <span style={{ color: accent.hex }}>T</span>
       </StatBlock>
 
       <svg

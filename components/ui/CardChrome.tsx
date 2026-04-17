@@ -63,6 +63,7 @@ export function CardChrome({
         </button>
         {!hideNext && (
           <div
+            className="ew-card-next"
             onClick={(e) => {
               e.stopPropagation();
               onNext?.();

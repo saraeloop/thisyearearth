@@ -56,7 +56,8 @@ export function StatBlock({
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.4 }}
         transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
         style={{
           position: "relative",
@@ -80,6 +81,7 @@ export function StatBlock({
           </div>
         )}
         <div
+          className="ew-stat-number"
           style={{
             fontFamily: FONTS.SERIF,
             fontWeight: 400,
@@ -112,6 +114,7 @@ export function StatBlock({
 export function StatLadder({ accent, rows, top = 258 }: StatLadderProps) {
   return (
     <div
+      className="ew-stat-ladder"
       style={{
         position: "absolute",
         top,
@@ -148,6 +151,7 @@ export function StatLadder({ accent, rows, top = 258 }: StatLadderProps) {
 export function StatSourceMeta({ top = 258, rows, dim = [] }: StatSourceMetaProps) {
   return (
     <div
+      className="ew-stat-sources"
       style={{
         position: "absolute",
         top,

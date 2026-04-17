@@ -17,6 +17,7 @@ export function CardMeta({ active, accent, chapter }: CardMetaProps) {
   return (
     <>
       <div
+        className="ew-card-meta"
         style={{
           position: "absolute",
           top: 82,
@@ -54,6 +55,7 @@ export function CardMeta({ active, accent, chapter }: CardMetaProps) {
       </div>
       {chapter && (
         <div
+          className="ew-card-chapter"
           style={{
             position: "absolute",
             top: 132,

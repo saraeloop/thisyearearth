@@ -1,4 +1,7 @@
+"use client";
+
 import type { CSSProperties, ReactNode } from "react";
+import { motion } from "framer-motion";
 import { PALETTE, FONTS } from "@/constants/colors";
 import type { Accent } from "@/types";
 
@@ -42,7 +45,13 @@ export function EarthQuote({
     textWrap: "balance",
   };
   return (
-    <div style={style}>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1], delay: 0.3 }}
+      style={style}
+    >
       <span
         style={{
           display: "block",
@@ -59,7 +68,7 @@ export function EarthQuote({
         — Earth
       </span>
       {children}
-    </div>
+    </motion.div>
   );
 }
 
