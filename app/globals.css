@@ -102,15 +102,17 @@ body {
   /* Side panel — ladder becomes right-side vertical list */
   .ew-desktop-root .ew-stat-ladder {
     top: 50% !important;
-    right: 4vw !important;
+    right: 3vw !important;
     left: auto !important;
     transform: translateY(-50%);
-    font-size: 13px !important;
-    line-height: 1.9 !important;
+    z-index: 4 !important;
+    font-size: 11.5px !important;
+    line-height: 1.75 !important;
     letter-spacing: 0.22em !important;
     gap: 8px !important;
     text-align: right;
     align-items: flex-end;
+    opacity: 0.68;
   }
   .ew-desktop-root .ew-stat-ladder > div {
     justify-content: flex-end;
@@ -128,10 +130,14 @@ body {
 
   /* Scroll is the only navigation — hide phone-style chrome on desktop */
   .ew-desktop-root .ew-card-next,
-  .ew-desktop-root .ew-progress-discrete,
-  .ew-desktop-root .ew-card-meta,
-  .ew-desktop-root .ew-card-chapter {
+  .ew-desktop-root .ew-progress-discrete {
     display: none !important;
+  }
+
+  .ew-desktop-root .ew-share-button {
+    position: relative;
+    z-index: 60;
+    pointer-events: auto;
   }
 
   /* hide native cursor when custom cursor is active */

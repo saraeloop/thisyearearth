@@ -1,9 +1,9 @@
 "use client";
 
-import { PALETTE, FONTS, ACCENTS } from "@/constants/colors";
+import { ACCENTS } from "@/constants/colors";
 import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
-import { StatBlock, StatLadder } from "./StatBlock";
+import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
@@ -43,25 +43,7 @@ export function TempCard({ active, onNext, onShare, grainLevel, voiceTone }: Car
           { left: "— 1.50", right: "paris goal", warn: true },
         ]}
       />
-      <div
-        style={{
-          position: "absolute",
-          top: 230,
-          right: 24,
-          textAlign: "right",
-          zIndex: 10,
-          fontFamily: FONTS.MONO,
-          fontSize: 8.5,
-          letterSpacing: "0.12em",
-          color: PALETTE.ASH_DIMMER,
-          lineHeight: 1.6,
-        }}
-      >
-        <div>SRC: NASA GISS</div>
-        <div>SRC: NOAA</div>
-        <div style={{ marginTop: 6, color: PALETTE.ASH_DIM }}>ANOMALY</div>
-        <div>CAL. 2026</div>
-      </div>
+      <StatSourceMeta rows={["SRC: NASA GISS", "SRC: NOAA"]} dim={["ANOMALY", "CAL. 2026"]} />
 
       <StatLabel>Global Surface Temperature</StatLabel>
       <HorizonLine accent={accent} />

@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ACCENTS, FONTS, PALETTE } from '@/constants/colors';
+import { ACCENTS, FONTS } from '@/constants/colors';
 import type { CardCommonProps } from '@/types';
 import { CardShell } from './CardShell';
-import { StatBlock } from './StatBlock';
+import { StatBlock, StatSourceMeta } from './StatBlock';
 import {
   EarthQuote,
   StatLabel,
@@ -125,26 +125,10 @@ export function CO2Card({
       <StatLabel>Above preindustrial</StatLabel>
       <HorizonLine accent={accent} />
       <EarthQuote>&ldquo;{quote}&rdquo;</EarthQuote>
-      <div
-        style={{
-          position: 'absolute',
-          right: 24,
-          bottom: 78,
-          zIndex: 16,
-          maxWidth: isDesktop ? '42vw' : 260,
-          textAlign: 'right',
-          fontFamily: FONTS.MONO,
-          fontSize: isDesktop ? 10 : 8.5,
-          letterSpacing: isDesktop ? '0.18em' : '0.12em',
-          lineHeight: 1.35,
-          textTransform: 'uppercase',
-          color: PALETTE.ASH,
-          opacity: 0.4,
-          pointerEvents: 'none',
-        }}
-      >
-        NOAA GML · MAUNA LOA · PRELIMINARY
-      </div>
+      <StatSourceMeta
+        rows={['SRC: NOAA GML']}
+        dim={['MAUNA LOA', 'PRELIMINARY']}
+      />
     </CardShell>
   );
 }

@@ -35,6 +35,8 @@ export function CardChrome({
         }}
       >
         <button
+          type="button"
+          className="ew-share-button"
           onClick={(e) => {
             e.stopPropagation();
             onShare?.();
