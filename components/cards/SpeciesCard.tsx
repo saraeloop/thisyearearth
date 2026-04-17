@@ -5,6 +5,7 @@ import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
 
 const accent = ACCENTS.species;
@@ -26,7 +27,7 @@ export function SpeciesCard({ active, onNext, onShare, grainLevel, voiceTone }: 
         fontSize={170}
         translateY={-20}
       >
-        41,046
+        <AnimatedNumber value={41046} format="grouped" />
       </StatBlock>
 
       <svg

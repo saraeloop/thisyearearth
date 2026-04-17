@@ -20,3 +20,140 @@ body {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ───────────────────────────────────────────────────────────── */
+/* Mobile + Tablet (≤ 1023px) — full-viewport card, no frame    */
+/* ───────────────────────────────────────────────────────────── */
+.ew-stage-bg {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #0a0e1a;
+  overflow: hidden;
+}
+
+.ew-tap-zones {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  pointer-events: none;
+}
+.ew-tap-left,
+.ew-tap-right {
+  flex: 1;
+  pointer-events: auto;
+}
+.ew-tap-left { cursor: w-resize; }
+.ew-tap-right { cursor: e-resize; }
+
+.ew-card-frame {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100%;
+  max-height: 100dvh;
+  border-radius: 0;
+  overflow: hidden;
+  z-index: 2;
+  background: #050608;
+}
+
+.ew-stage-meta,
+.ew-stage-hint {
+  display: none;
+}
+
+/* Final card — mobile/tablet show constellation; desktop uses globe */
+.ew-final-globe { display: none; }
+
+/* ───────────────────────────────────────────────────────────── */
+/* Desktop — lg breakpoint. Vertical Lenis scroll + snap        */
+/* ───────────────────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: auto;
+    overscroll-behavior-y: none;
+  }
+
+  .ew-desktop-root {
+    position: relative;
+  }
+
+  .ew-desktop-scroll {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ew-desktop-section {
+    width: 100vw;
+    height: 100dvh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Billboard typography on every section */
+  .ew-desktop-root .ew-stat-number {
+    font-size: 35vw !important;
+    line-height: 0.82 !important;
+  }
+  .ew-desktop-root .ew-stat-number span {
+    font-size: 0.55em !important;
+  }
+
+  /* Side panel — ladder becomes right-side vertical list */
+  .ew-desktop-root .ew-stat-ladder {
+    top: 50% !important;
+    right: 4vw !important;
+    left: auto !important;
+    transform: translateY(-50%);
+    font-size: 13px !important;
+    line-height: 1.9 !important;
+    letter-spacing: 0.22em !important;
+    gap: 8px !important;
+    text-align: right;
+    align-items: flex-end;
+  }
+  .ew-desktop-root .ew-stat-ladder > div {
+    justify-content: flex-end;
+  }
+
+  /* Sources fade to editorial footer */
+  .ew-desktop-root .ew-stat-sources {
+    top: auto !important;
+    bottom: 14vh !important;
+    right: 4vw !important;
+    font-size: 11px !important;
+    letter-spacing: 0.22em !important;
+    opacity: 0.55;
+  }
+
+  /* Shift the big stat block slightly left so ladder breathes */
+  .ew-desktop-root .ew-stat-number {
+    transform: translateX(-6vw);
+  }
+
+  /* Scroll is the only navigation — hide phone-style chrome on desktop */
+  .ew-desktop-root .ew-card-next,
+  .ew-desktop-root .ew-progress-discrete,
+  .ew-desktop-root .ew-card-meta,
+  .ew-desktop-root .ew-card-chapter {
+    display: none !important;
+  }
+
+  /* Globe swap on desktop */
+  .ew-desktop-root .ew-final-constellation { display: none !important; }
+  .ew-desktop-root .ew-final-globe { display: block !important; }
+
+  /* hide native cursor when custom cursor is active */
+  body.ew-has-cursor,
+  body.ew-has-cursor * {
+    cursor: none !important;
+  }
+}

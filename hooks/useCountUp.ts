@@ -2,13 +2,19 @@
 
 import { useEffect, useState } from "react";
 
-type Options = {
+type UseCountUpOptions = {
   from?: number;
   to: number;
   durationMs?: number;
+  overshoot?: number;
 };
 
-export function useCountUp({ from = 0, to, durationMs = 1500 }: Options) {
+export function useCountUp({
+  from = 0,
+  to,
+  durationMs = 1800,
+  overshoot = 0.04,
+}: UseCountUpOptions) {
   const [value, setValue] = useState(from);
 
   useEffect(() => {
@@ -16,17 +22,34 @@ export function useCountUp({ from = 0, to, durationMs = 1500 }: Options) {
       setValue(to);
       return;
     }
+
+    const peak = to + (to - from) * overshoot;
     const start = performance.now();
     let raf = 0;
+
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / durationMs);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setValue(from + (to - from) * eased);
+      const v = springPhase(t, from, peak, to);
+      setValue(v);
       if (t < 1) raf = requestAnimationFrame(tick);
+      else setValue(to);
     };
+
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [from, to, durationMs]);
+  }, [from, to, durationMs, overshoot]);
 
   return value;
+}
+
+function springPhase(t: number, from: number, peak: number, target: number) {
+  const riseCut = 0.62;
+  if (t <= riseCut) {
+    const r = t / riseCut;
+    const eased = 1 - Math.pow(1 - r, 3);
+    return from + (peak - from) * eased;
+  }
+  const r = (t - riseCut) / (1 - riseCut);
+  const damped = Math.cos(r * Math.PI * 1.5) * Math.exp(-r * 3);
+  return target + (peak - target) * damped;
 }

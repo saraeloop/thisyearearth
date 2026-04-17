@@ -5,6 +5,7 @@ import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { StatBlock, StatLadder } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
 
 const accent = ACCENTS.temp;
@@ -26,7 +27,7 @@ export function TempCard({ active, onNext, onShare, grainLevel, voiceTone }: Car
         fontSize={180}
       >
         <span style={{ fontSize: 140, verticalAlign: "top", color: accent.hex, marginRight: 4 }}>+</span>
-        1.55
+        <AnimatedNumber value={1.55} decimals={2} />
         <span style={{ fontSize: 110, verticalAlign: "top", marginLeft: 4 }}>°C</span>
       </StatBlock>
 

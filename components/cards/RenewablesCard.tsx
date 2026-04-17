@@ -5,6 +5,7 @@ import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
 
 const accent = ACCENTS.renewables;
@@ -46,7 +47,7 @@ export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone 
         translateY={-10}
       >
         <span style={{ color: accent.hex, fontSize: 140, verticalAlign: "top" }}>+</span>
-        32
+        <AnimatedNumber value={32} />
         <span style={{ color: accent.hex, fontSize: 120 }}>%</span>
       </StatBlock>
 

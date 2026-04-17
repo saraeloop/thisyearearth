@@ -5,6 +5,7 @@ import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
 import { useCo2 } from "@/hooks/useCo2";
 
@@ -23,7 +24,7 @@ export function CO2Card({ active, onNext, onShare, grainLevel, voiceTone }: Card
       onShare={onShare}
     >
       <StatBlock accent={accent} underline="parts per million" fontSize={230}>
-        {ppm}
+        <AnimatedNumber value={ppm} />
       </StatBlock>
 
       <StatLadder
