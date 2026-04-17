@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+:root {
+  --ew-bg-top: #0a0e1a;
+  --ew-bg-mid: #0d1322;
+  --ew-bg-bottom: #070a12;
+  --ew-ash: #e6d6be;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 50% 40%, #0b0d14 0%, #050608 70%);
+  color: var(--ew-ash);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}

@@ -1,0 +1,72 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { PALETTE } from "@/constants/colors";
+import type { Accent } from "@/types";
+import { slowRotate } from "@/constants/variants";
+
+type GlobeProps = {
+  accent: Accent;
+  active: boolean;
+};
+
+export function Globe({ accent, active }: GlobeProps) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "46%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: 200,
+        height: 200,
+        zIndex: 5,
+        pointerEvents: "none",
+      }}
+    >
+      <motion.svg
+        viewBox="-100 -100 200 200"
+        width="200"
+        height="200"
+        variants={slowRotate}
+        animate="animate"
+        style={{
+          filter: active ? `drop-shadow(0 0 20px ${accent.glow})` : "none",
+        }}
+      >
+        <circle cx="0" cy="0" r="88" fill="none" stroke={PALETTE.ASH_DIMMER} strokeWidth="0.5" />
+        <circle cx="0" cy="0" r="88" fill={`${accent.hex}08`} stroke="none" />
+        {[0, 30, 60, 90, 120, 150].map((a) => (
+          <ellipse
+            key={a}
+            cx="0"
+            cy="0"
+            rx={88 * Math.abs(Math.cos((a * Math.PI) / 180)) || 0.5}
+            ry="88"
+            fill="none"
+            stroke={PALETTE.ASH_FAINT}
+            strokeWidth="0.4"
+          />
+        ))}
+        {[-60, -30, 0, 30, 60].map((lat) => (
+          <ellipse
+            key={lat}
+            cx="0"
+            cy={(lat * 88) / 90}
+            rx={88 * Math.cos((lat * Math.PI) / 180)}
+            ry={4}
+            fill="none"
+            stroke={PALETTE.ASH_FAINT}
+            strokeWidth="0.4"
+          />
+        ))}
+        {active && (
+          <circle cx="30" cy="-18" r="3" fill={accent.hex}>
+            <animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
+          </circle>
+        )}
+      </motion.svg>
+    </div>
+  );
+}
