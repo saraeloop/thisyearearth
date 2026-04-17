@@ -26,7 +26,7 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
         overline="lost this year"
         underline="tonnes of ice"
         fontSize={200}
-        desktopFontSize="clamp(590px, 62vw, 820px)"
+        desktopFontSize="clamp(360px, 38vw, 500px)"
         translateY={-20}
       >
         <AnimatedNumber value={1.17} decimals={2} />

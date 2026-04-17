@@ -116,7 +116,7 @@ export function CO2Card({
         accent={accent}
         underline="parts per million"
         fontSize={230}
-        desktopFontSize="clamp(720px, 76vw, 940px)"
+        desktopFontSize="clamp(420px, 44vw, 580px)"
         translateY={isDesktop ? -54 : -18}
       >
         <AnimatedNumber value={latest} />

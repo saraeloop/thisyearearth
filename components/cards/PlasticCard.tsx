@@ -25,7 +25,7 @@ export function PlasticCard({ active, onNext, onShare, grainLevel, voiceTone }: 
         accent={accent}
         underline="plastic produced"
         fontSize={210}
-        desktopFontSize="clamp(620px, 64vw, 840px)"
+        desktopFontSize="clamp(380px, 40vw, 520px)"
       >
         <AnimatedNumber value={413} />
         <span style={{ color: accent.hex, fontSize: "0.44em" }}>Mt</span>

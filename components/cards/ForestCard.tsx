@@ -25,7 +25,7 @@ export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: C
         accent={accent}
         underline="hectares of forest"
         fontSize={190}
-        desktopFontSize="clamp(560px, 58vw, 760px)"
+        desktopFontSize="clamp(340px, 36vw, 480px)"
       >
         <AnimatedNumber value={14.9} decimals={1} />
         <span style={{ color: accent.hex, fontSize: "0.58em" }}>M</span>
