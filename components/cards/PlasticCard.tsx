@@ -25,10 +25,10 @@ export function PlasticCard({ active, onNext, onShare, grainLevel, voiceTone }: 
         accent={accent}
         underline="plastic produced"
         fontSize={210}
-        desktopFontSize="clamp(260px, 27vw, 360px)"
+        desktopFontSize="clamp(440px, 42vw, 600px)"
       >
         <AnimatedNumber value={413} />
-        <span style={{ color: accent.hex, fontSize: 130 }}>Mt</span>
+        <span style={{ color: accent.hex, fontSize: "0.44em" }}>Mt</span>
       </StatBlock>
 
       <StatLadder

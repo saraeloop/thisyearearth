@@ -44,12 +44,12 @@ export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone 
         accent={accent}
         underline="more clean energy"
         fontSize={220}
-        desktopFontSize="clamp(280px, 30vw, 400px)"
+        desktopFontSize="clamp(420px, 40vw, 580px)"
         translateY={-10}
       >
-        <span style={{ color: accent.hex, fontSize: 140, verticalAlign: "top" }}>+</span>
+        <span style={{ color: accent.hex, fontSize: "0.5em", verticalAlign: "top" }}>+</span>
         <AnimatedNumber value={32} />
-        <span style={{ color: accent.hex, fontSize: 120 }}>%</span>
+        <span style={{ color: accent.hex, fontSize: "0.5em" }}>%</span>
       </StatBlock>
 
       <svg

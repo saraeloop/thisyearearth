@@ -25,11 +25,11 @@ export function TempCard({ active, onNext, onShare, grainLevel, voiceTone }: Car
         accent={accent}
         underline="above preindustrial"
         fontSize={180}
-        desktopFontSize="clamp(320px, 32vw, 430px)"
+        desktopFontSize="clamp(430px, 42vw, 570px)"
       >
-        <span style={{ fontSize: 140, verticalAlign: "top", color: accent.hex, marginRight: 4 }}>+</span>
+        <span style={{ fontSize: "0.48em", verticalAlign: "top", color: accent.hex, marginRight: 4 }}>+</span>
         <AnimatedNumber value={1.55} decimals={2} />
-        <span style={{ fontSize: 110, verticalAlign: "top", marginLeft: 4 }}>°C</span>
+        <span style={{ fontSize: "0.42em", verticalAlign: "top", marginLeft: 4 }}>°C</span>
       </StatBlock>
 
       <StatLadder

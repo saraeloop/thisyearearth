@@ -25,10 +25,10 @@ export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: C
         accent={accent}
         underline="hectares of forest"
         fontSize={190}
-        desktopFontSize="clamp(270px, 28vw, 380px)"
+        desktopFontSize="clamp(390px, 38vw, 540px)"
       >
         <AnimatedNumber value={14.9} decimals={1} />
-        <span style={{ color: accent.hex, fontSize: 130 }}>M</span>
+        <span style={{ color: accent.hex, fontSize: "0.58em" }}>M</span>
       </StatBlock>
 
       <svg
