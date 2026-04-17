@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import * as THREE from "three";
 import type { GlobeMethods } from "react-globe.gl";
 import type { Accent, Location } from "@/types";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 const Globe = dynamic(() => import("react-globe.gl"), {
   ssr: false,
@@ -37,14 +38,16 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
   const [ready, setReady] = useState(false);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
+  const isDesktop = useMediaMin(1024);
 
   useEffect(() => {
     if (!boxRef.current) return;
     const el = boxRef.current;
 
     const apply = (w: number, h: number) => {
-      const nw = Math.max(320, Math.round(w));
-      const nh = Math.max(320, Math.round(h));
+      const minSize = isDesktop ? 320 : 360;
+      const nw = Math.max(minSize, Math.round(w));
+      const nh = Math.max(minSize, Math.round(h));
       setSize((prev) => (prev && prev.w === nw && prev.h === nh ? prev : { w: nw, h: nh }));
     };
 
@@ -58,7 +61,7 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
     apply(rect.width, rect.height);
 
     return () => ro.disconnect();
-  }, []);
+  }, [isDesktop]);
 
   useEffect(() => {
     if (!ready) return;
@@ -98,10 +101,8 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
     [],
   );
 
-  return (
-    <div
-      ref={boxRef}
-      style={{
+  const boxStyle: CSSProperties = isDesktop
+    ? {
         position: "absolute",
         inset: 0,
         zIndex: 2,
@@ -109,7 +110,25 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-      }}
+      }
+    : {
+        position: "absolute",
+        top: "24dvh",
+        left: "50%",
+        width: "min(122vw, 460px)",
+        height: "min(122vw, 460px)",
+        transform: "translateX(-50%)",
+        zIndex: 2,
+        pointerEvents: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      };
+
+  return (
+    <div
+      ref={boxRef}
+      style={boxStyle}
     >
       {size && (
         <motion.div

@@ -67,9 +67,6 @@ body {
   display: none;
 }
 
-/* Final card — mobile/tablet show constellation; desktop uses globe */
-.ew-final-globe { display: none; }
-
 /* ───────────────────────────────────────────────────────────── */
 /* Desktop — lg breakpoint. Vertical Lenis scroll               */
 /* ───────────────────────────────────────────────────────────── */
@@ -94,15 +91,6 @@ body {
     height: 100dvh;
     overflow: hidden;
     z-index: 1;
-  }
-
-  /* Billboard typography on every section */
-  .ew-desktop-root .ew-stat-number {
-    font-size: 35vw !important;
-    line-height: 0.82 !important;
-  }
-  .ew-desktop-root .ew-stat-number span {
-    font-size: 0.55em !important;
   }
 
   /* Side panel — ladder becomes right-side vertical list */
@@ -132,11 +120,6 @@ body {
     opacity: 0.55;
   }
 
-  /* Shift the big stat block slightly left so ladder breathes */
-  .ew-desktop-root .ew-stat-number {
-    transform: translateX(-6vw);
-  }
-
   /* Scroll is the only navigation — hide phone-style chrome on desktop */
   .ew-desktop-root .ew-card-next,
   .ew-desktop-root .ew-progress-discrete,
@@ -144,10 +127,6 @@ body {
   .ew-desktop-root .ew-card-chapter {
     display: none !important;
   }
-
-  /* Globe swap on desktop */
-  .ew-desktop-root .ew-final-constellation { display: none !important; }
-  .ew-desktop-root .ew-final-globe { display: block !important; }
 
   /* hide native cursor when custom cursor is active */
   body.ew-has-cursor,

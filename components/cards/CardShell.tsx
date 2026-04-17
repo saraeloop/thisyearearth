@@ -43,7 +43,8 @@ export function CardShell({
   const shellStyle: CSSProperties = {
     width: "100%",
     height: "100%",
-    position: "relative",
+    position: "absolute",
+    inset: 0,
     overflow: "hidden",
     userSelect: "none",
     fontFamily: FONTS.MONO,
@@ -58,6 +59,7 @@ export function CardShell({
       initial="hidden"
       animate="visible"
       exit="hidden"
+      data-card={cardId}
       transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
       onClick={effectiveClickable ? onNext : undefined}
       style={shellStyle}

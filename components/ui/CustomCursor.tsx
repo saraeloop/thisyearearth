@@ -73,7 +73,7 @@ export function CustomCursor({ accent }: CustomCursorProps) {
           width: hover ? 24 : 8,
           height: hover ? 24 : 8,
           borderWidth: hover ? 1 : 0,
-          backgroundColor: hover ? "transparent" : accent.hex,
+          backgroundColor: hover ? "rgba(0, 0, 0, 0)" : accent.hex,
         }}
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
         style={{

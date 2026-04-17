@@ -122,7 +122,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
         )}
 
         <div className="ew-card-frame" data-card={cardId}>
-          <AnimatePresence mode="wait">
+          <AnimatePresence initial={false} mode="sync">
             {cardId === "intro" && <IntroCard key="intro" {...common} />}
             {cardId === "location" && (
               <LocationCard

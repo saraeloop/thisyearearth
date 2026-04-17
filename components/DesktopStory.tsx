@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
 import { CARD_IDS } from "@/constants/cards";
 import { ACCENTS } from "@/constants/colors";
 import { CARD_BACKGROUNDS } from "@/constants/backgrounds";
@@ -35,18 +40,40 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
 
   const lenisRef = useLenis({ enabled: true, smoothWheel: true });
 
-  const { scrollYProgress } = useScroll();
+  const scrollYProgress = useMotionValue(0);
 
   const stops = CARD_IDS.map((_, i) => i / (N - 1));
   const bgStops = CARD_IDS.map((id) => CARD_BACKGROUNDS[id]);
   const backgroundColor = useTransform(scrollYProgress, stops, bgStops);
 
   useEffect(() => {
-    const unsub = scrollYProgress.on("change", (v) => {
+    let raf = 0;
+
+    const updateProgress = () => {
+      raf = 0;
+      const maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+      const v = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+      scrollYProgress.set(v);
       const idx = Math.max(0, Math.min(N - 1, Math.round(v * (N - 1))));
       setActiveIdx((curr) => (curr === idx ? curr : idx));
-    });
-    return () => unsub();
+    };
+
+    const scheduleUpdate = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(updateProgress);
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
   }, [scrollYProgress]);
 
   const cursorAccent = ACCENTS[CARD_IDS[activeIdx]];
@@ -104,7 +131,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
       />
 
       <motion.div className="ew-desktop-stage" style={{ backgroundColor }}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} mode="sync">
           {renderCard(activeIdx, {
             sectionProps,
             userLocation,

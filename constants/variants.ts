@@ -27,7 +27,7 @@ export const backdrop: Variants = {
 export const cardEnter: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
-  exit: { opacity: 0 },
+  exit: { opacity: 1 },
 };
 
 export const pulseDot: Variants = {

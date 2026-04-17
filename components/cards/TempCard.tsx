@@ -25,6 +25,7 @@ export function TempCard({ active, onNext, onShare, grainLevel, voiceTone }: Car
         accent={accent}
         underline="above preindustrial"
         fontSize={180}
+        desktopFontSize="clamp(320px, 32vw, 430px)"
       >
         <span style={{ fontSize: 140, verticalAlign: "top", color: accent.hex, marginRight: 4 }}>+</span>
         <AnimatedNumber value={1.55} decimals={2} />
