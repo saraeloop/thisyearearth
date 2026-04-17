@@ -21,7 +21,12 @@ export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: C
       onNext={onNext}
       onShare={onShare}
     >
-      <StatBlock accent={accent} underline="hectares of forest" fontSize={190}>
+      <StatBlock
+        accent={accent}
+        underline="hectares of forest"
+        fontSize={190}
+        desktopFontSize="clamp(270px, 28vw, 380px)"
+      >
         <AnimatedNumber value={14.9} decimals={1} />
         <span style={{ color: accent.hex, fontSize: 130 }}>M</span>
       </StatBlock>

@@ -21,7 +21,12 @@ export function PlasticCard({ active, onNext, onShare, grainLevel, voiceTone }: 
       onNext={onNext}
       onShare={onShare}
     >
-      <StatBlock accent={accent} underline="plastic produced" fontSize={210}>
+      <StatBlock
+        accent={accent}
+        underline="plastic produced"
+        fontSize={210}
+        desktopFontSize="clamp(260px, 27vw, 360px)"
+      >
         <AnimatedNumber value={413} />
         <span style={{ color: accent.hex, fontSize: 130 }}>Mt</span>
       </StatBlock>

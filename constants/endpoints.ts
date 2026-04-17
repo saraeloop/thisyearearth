@@ -2,6 +2,8 @@ export const ENDPOINTS = {
   CO2: "/api/co2",
   EARTH_VOICE: "/api/earth-voice",
   PLEDGES: "/api/pledges",
+  NOAA_CO2_CSV:
+    "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_daily_mlo.csv",
 } as const;
 
 export const EXTERNAL = {

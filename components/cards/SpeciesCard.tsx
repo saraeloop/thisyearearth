@@ -25,6 +25,7 @@ export function SpeciesCard({ active, onNext, onShare, grainLevel, voiceTone }: 
         accent={accent}
         underline="species threatened"
         fontSize={170}
+        desktopFontSize="clamp(190px, 19vw, 270px)"
         translateY={-20}
       >
         <AnimatedNumber value={41046} format="grouped" />

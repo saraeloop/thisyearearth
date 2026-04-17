@@ -44,6 +44,7 @@ export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone 
         accent={accent}
         underline="more clean energy"
         fontSize={220}
+        desktopFontSize="clamp(280px, 30vw, 400px)"
         translateY={-10}
       >
         <span style={{ color: accent.hex, fontSize: 140, verticalAlign: "top" }}>+</span>
