@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { CARD_IDS } from "@/constants/cards";
 import { ACCENTS } from "@/constants/colors";
@@ -27,7 +27,6 @@ type DesktopStoryProps = { tweaks: Tweaks };
 const N = CARD_IDS.length;
 
 export function DesktopStory({ tweaks }: DesktopStoryProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareCardId, setShareCardId] = useState<CardId>("intro");
   const [userLocation, setUserLocation] = useState<Location | null>(null);
@@ -36,10 +35,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
 
   const lenisRef = useLenis({ enabled: true, smoothWheel: true });
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
+  const { scrollYProgress } = useScroll();
 
   const stops = CARD_IDS.map((_, i) => i / (N - 1));
   const bgStops = CARD_IDS.map((id) => CARD_BACKGROUNDS[id]);
@@ -58,8 +54,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   const scrollToIndex = useCallback(
     (idx: number) => {
       const clamped = Math.max(0, Math.min(N - 1, idx));
-      const target =
-        (containerRef.current?.offsetTop ?? 0) + clamped * window.innerHeight;
+      const target = clamped * window.innerHeight;
       const lenis = lenisRef.current;
       if (lenis) {
         lenis.scrollTo(target, { duration: 1.25 });
@@ -104,7 +99,6 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   return (
     <div className="ew-desktop-root">
       <div
-        ref={containerRef}
         className="ew-desktop-track"
         style={{ height: `${N * 100}dvh`, position: "relative" }}
       />

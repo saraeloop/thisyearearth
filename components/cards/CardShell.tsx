@@ -56,9 +56,7 @@ export function CardShell({
       key={cardId}
       variants={cardEnter}
       initial="hidden"
-      animate={isDesktop ? undefined : "visible"}
-      whileInView={isDesktop ? "visible" : undefined}
-      viewport={isDesktop ? { once: true, amount: 0.3 } : undefined}
+      animate="visible"
       exit="hidden"
       transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
       onClick={effectiveClickable ? onNext : undefined}

@@ -47,8 +47,7 @@ export function EarthQuote({
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.5 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1], delay: 0.3 }}
       style={style}
     >
