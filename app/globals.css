@@ -93,6 +93,12 @@ body {
     z-index: 1;
   }
 
+  .ew-desktop-root .ew-stat-number {
+    font-size: var(--ew-stat-desktop-size) !important;
+    line-height: 0.82 !important;
+    letter-spacing: 0 !important;
+  }
+
   /* Side panel — ladder becomes right-side vertical list */
   .ew-desktop-root .ew-stat-ladder {
     top: 50% !important;

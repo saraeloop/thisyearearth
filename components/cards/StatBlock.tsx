@@ -4,7 +4,6 @@ import type { CSSProperties, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { PALETTE, FONTS } from "@/constants/colors";
 import type { Accent } from "@/types";
-import { useMediaMin } from "@/hooks/useBreakpoint";
 
 type StatBlockProps = {
   accent: Accent;
@@ -37,9 +36,6 @@ export function StatBlock({
   fontSize = 200,
   desktopFontSize,
 }: StatBlockProps) {
-  const isDesktop = useMediaMin(1024);
-  const resolvedFontSize = isDesktop && desktopFontSize ? desktopFontSize : fontSize;
-
   const halo: CSSProperties = {
     position: "absolute",
     inset: "-40px -20px",
@@ -88,16 +84,18 @@ export function StatBlock({
         <div
           className="ew-stat-number"
           style={{
+            "--ew-stat-mobile-size": `${fontSize}px`,
+            "--ew-stat-desktop-size": desktopFontSize ?? `${fontSize}px`,
             fontFamily: FONTS.SERIF,
             fontWeight: 400,
-            fontSize: resolvedFontSize,
-            lineHeight: isDesktop ? 0.88 : 0.82,
-            letterSpacing: isDesktop ? 0 : "-0.05em",
+            fontSize: "var(--ew-stat-mobile-size)",
+            lineHeight: 0.82,
+            letterSpacing: "-0.05em",
             color: PALETTE.ASH,
             textShadow: `0 2px 40px ${accent.glow}`,
             fontVariantNumeric: "lining-nums tabular-nums",
             whiteSpace: "nowrap",
-          }}
+          } as CSSProperties}
         >
           {children}
         </div>
