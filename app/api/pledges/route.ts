@@ -10,28 +10,54 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { text?: unknown };
+  let body: {
+    pledge_text?: unknown;
+    text?: unknown;
+    name?: unknown;
+    country?: unknown;
+    country_code?: unknown;
+    countryCode?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
-  const text =
-    typeof body.text === "string" ? body.text.trim().slice(0, 200) : "";
-  if (text.length < 3) {
+  const pledgeTextSource =
+    typeof body.pledge_text === "string" ? body.pledge_text : body.text;
+  const pledgeText =
+    typeof pledgeTextSource === "string" ? pledgeTextSource.trim().slice(0, 200) : "";
+  if (pledgeText.length < 3) {
     return NextResponse.json({ error: "pledge too short" }, { status: 400 });
   }
 
-  const result = await mintPledge(text);
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) : null;
+  const country =
+    typeof body.country === "string" ? body.country.trim().slice(0, 80) : null;
+  const countryCodeSource =
+    typeof body.country_code === "string" ? body.country_code : body.countryCode;
+  const normalizedCountryCode =
+    typeof countryCodeSource === "string"
+      ? countryCodeSource.trim().toUpperCase()
+      : "";
+  const countryCode = normalizedCountryCode.length === 2 ? normalizedCountryCode : null;
+
+  const result = await mintPledge(pledgeText);
   try {
-    await insertPledge(text, result.txHash);
-  } catch {
-    // fall through — still return the receipt
+    await insertPledge({
+      pledgeText,
+      name: name || null,
+      country: country || null,
+      countryCode: countryCode || null,
+    });
+  } catch (error) {
+    console.error("Failed to insert pledge", error);
+    return NextResponse.json({ error: "pledge storage failed" }, { status: 500 });
   }
 
   const pledge: Pledge = {
     choice: null,
-    custom: text,
+    custom: pledgeText,
     minted: true,
     ts: Date.now(),
     txHash: result.txHash,

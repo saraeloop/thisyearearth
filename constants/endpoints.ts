@@ -1,5 +1,6 @@
 export const ENDPOINTS = {
   CO2: "/api/co2",
+  LOCATIONS: "/api/locations",
   PLEDGES: "/api/pledges",
   NOAA_CO2_CSV:
     "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_daily_mlo.csv",

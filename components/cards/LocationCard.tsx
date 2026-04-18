@@ -47,6 +47,8 @@ export function LocationCard({
     const loc: Location = {
       city: region,
       region,
+      country: region,
+      countryCode: "ZZ",
       lat: 0,
       lon: 0,
       tz: "UTC",

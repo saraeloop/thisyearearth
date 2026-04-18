@@ -45,7 +45,7 @@ export function useMintPledge() {
         const res = await fetch(ENDPOINTS.PLEDGES, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ pledge_text: text }),
         });
         if (!res.ok) throw new Error(`mint failed: ${res.status}`);
         const data = (await res.json()) as { pledge: Pledge };
