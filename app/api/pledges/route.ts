@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { countPledges, insertPledge } from "@/lib/db/pledges";
+import { PLEDGE_COUNT_CACHE_TAG, cachedCountPledges, insertPledge } from "@/lib/db/pledges";
 import { recordLocation } from "@/lib/db/locations";
 import { mintPledge } from "@/lib/solana/mint";
 import type { Pledge } from "@/types";
+import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
+import { revalidateTag } from "next/cache";
 
 function optionalCoordinate(value: unknown, min: number, max: number): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -13,7 +15,7 @@ function optionalCoordinate(value: unknown, min: number, max: number): number | 
 }
 
 export async function GET() {
-  const count = await countPledges();
+  const count = await cachedCountPledges();
   return NextResponse.json({ count });
 }
 
@@ -35,9 +37,12 @@ export async function POST(req: NextRequest) {
   const pledgeTextSource =
     typeof body.pledge_text === "string" ? body.pledge_text : body.text;
   const pledgeText =
-    typeof pledgeTextSource === "string" ? pledgeTextSource.trim().slice(0, 200) : "";
-  if (pledgeText.length < 3) {
+    typeof pledgeTextSource === "string" ? pledgeTextSource.trim() : "";
+  if (pledgeText.length < PLEDGE_TEXT_MIN_LENGTH) {
     return NextResponse.json({ error: "pledge too short" }, { status: 400 });
+  }
+  if (pledgeText.length > PLEDGE_TEXT_MAX_LENGTH) {
+    return NextResponse.json({ error: "pledge too long" }, { status: 400 });
   }
 
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) : null;
@@ -75,6 +80,7 @@ export async function POST(req: NextRequest) {
     console.error("Failed to insert pledge", error);
     return NextResponse.json({ error: "pledge storage failed" }, { status: 500 });
   }
+  revalidateTag(PLEDGE_COUNT_CACHE_TAG, { expire: 0 });
 
   if (location) {
     const locationCountry =

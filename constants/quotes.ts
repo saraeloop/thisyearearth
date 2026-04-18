@@ -40,8 +40,8 @@ export const VOICE_QUOTES: Partial<Record<CardId, QuoteSet>> = {
     darker: "You're trying. It's not enough yet. But I see it.",
   },
   final: {
-    hopeful: "This was the year. There will be another.\nMake it count with me.",
-    default: "This was the year. There will be another.\nMake it count.",
-    darker: "This was the year.\nThere may not be endless others.",
+    hopeful: "Another year recorded. See you next year.\nMake it count with me.",
+    default: "Another year recorded. See you next year.\nMake it count.",
+    darker: "Another year recorded.\nThere may not be endless others.",
   },
 };

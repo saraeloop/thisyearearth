@@ -8,6 +8,7 @@ import { MintedReceipt } from "./MintedReceipt";
 import { MintButton } from "@/components/ui/MintButton";
 import { useMintPledge } from "@/hooks/usePledge";
 import { useMediaMin } from "@/hooks/useBreakpoint";
+import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 
 type PledgeCardProps = CardCommonProps & {
   userPledge: Pledge | null;
@@ -49,7 +50,7 @@ export function PledgeCard({
     return PRESETS.find((p) => p.id === choice)?.label ?? "";
   }, [writing, custom, choice]);
 
-  const canMint = writing ? custom.trim().length > 2 : !!choice;
+  const canMint = writing ? custom.trim().length >= PLEDGE_TEXT_MIN_LENGTH : !!choice;
 
   const handleMint = async () => {
     if (!canMint) return;
@@ -220,7 +221,7 @@ export function PledgeCard({
                   onChange={(e) => setCustom(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="In 2026, I will…"
-                  maxLength={80}
+                  maxLength={PLEDGE_TEXT_MAX_LENGTH}
                   style={{
                     width: "100%",
                     boxSizing: "border-box",
@@ -248,7 +249,7 @@ export function PledgeCard({
                     color: PALETTE.ASH_DIMMER,
                   }}
                 >
-                  {custom.length} / 80
+                  {custom.length} / {PLEDGE_TEXT_MAX_LENGTH}
                 </div>
                 <div
                   style={{
