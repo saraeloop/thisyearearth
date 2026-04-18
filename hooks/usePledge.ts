@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { ENDPOINTS } from "@/constants/endpoints";
 import type { Pledge } from "@/types";
+import { mintPledgeOnDevnet } from "@/lib/solana/wallet";
+import type { PledgeMintMetadata } from "@/lib/solana/mint";
 
 const SESSION_LOCATION_KEY = "thisyearearth:session-location";
 const SAVED_LOCATION_KEY = "thisyearearth:session-location-saved";
@@ -102,35 +104,71 @@ export function useMintPledge() {
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const postPledge = useCallback(
+    async (
+      text: string,
+      metadata: PledgeMetadata = {},
+      mintMetadata?: PledgeMintMetadata,
+    ): Promise<Pledge | null> => {
+      const res = await fetch(ENDPOINTS.PLEDGES, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pledge_text: text,
+          name: metadata.name,
+          country: metadata.country,
+          countryCode: metadata.countryCode,
+          location: metadata.location,
+          mint: mintMetadata,
+        }),
+      });
+      if (!res.ok) throw new Error(`pledge save failed: ${res.status}`);
+      const data = (await res.json()) as { pledge: Pledge };
+      return data.pledge;
+    },
+    [],
+  );
+
   const mint = useCallback(
     async (text: string, metadata: PledgeMetadata = {}): Promise<Pledge | null> => {
       setMinting(true);
       setError(null);
+      let mintMetadata: PledgeMintMetadata | null = null;
       try {
-        const res = await fetch(ENDPOINTS.PLEDGES, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            pledge_text: text,
-            name: metadata.name,
-            country: metadata.country,
-            countryCode: metadata.countryCode,
-            location: metadata.location,
-          }),
-        });
-        if (!res.ok) throw new Error(`mint failed: ${res.status}`);
+        mintMetadata = await mintPledgeOnDevnet(text);
         await ensureSessionLocationSaved();
-        const data = (await res.json()) as { pledge: Pledge };
-        return data.pledge;
+        return postPledge(text, metadata, mintMetadata);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "mint failed");
+        const message = e instanceof Error ? e.message : "mint failed";
+        setError(
+          mintMetadata
+            ? `Solana confirmed, but pledge save failed: ${message}`
+            : message,
+        );
         return null;
       } finally {
         setMinting(false);
       }
     },
-    [],
+    [postPledge],
   );
 
-  return { mint, minting, error };
+  const record = useCallback(
+    async (text: string, metadata: PledgeMetadata = {}): Promise<Pledge | null> => {
+      setMinting(true);
+      setError(null);
+      try {
+        await ensureSessionLocationSaved();
+        return postPledge(text, metadata);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "pledge save failed");
+        return null;
+      } finally {
+        setMinting(false);
+      }
+    },
+    [postPledge],
+  );
+
+  return { mint, record, minting, error };
 }

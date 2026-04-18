@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { PLEDGE_COUNT_CACHE_TAG, cachedCountPledges, insertPledge } from "@/lib/db/pledges";
+import {
+  PLEDGE_COUNT_CACHE_TAG,
+  cachedCountPledges,
+  insertPledge,
+  listMintedPledges,
+} from "@/lib/db/pledges";
 import { recordLocation } from "@/lib/db/locations";
-import { mintPledge } from "@/lib/solana/mint";
+import { fetchLatestCo2 } from "@/lib/api/co2";
 import type { Pledge } from "@/types";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import { revalidateTag } from "next/cache";
+import {
+  isLikelySolanaSignature,
+  isValidPledgeMintMetadata,
+  SOLANA_MEMO_PROGRAM_ID,
+  SOLANA_NETWORK,
+  type PledgeMintMetadata,
+} from "@/lib/solana/mint";
 
 function optionalCoordinate(value: unknown, min: number, max: number): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -14,9 +26,66 @@ function optionalCoordinate(value: unknown, min: number, max: number): number | 
   return n;
 }
 
-export async function GET() {
+function optionalMintMetadata(value: unknown, pledgeText: string): PledgeMintMetadata | null {
+  if (!value || typeof value !== "object") return null;
+  const mint = value as Partial<PledgeMintMetadata>;
+  if (
+    typeof mint.txHash !== "string" ||
+    typeof mint.walletAddress !== "string" ||
+    typeof mint.memo !== "string" ||
+    typeof mint.explorerUrl !== "string" ||
+    typeof mint.mintedAt !== "string"
+  ) {
+    return null;
+  }
+
+  const metadata: PledgeMintMetadata = {
+    txHash: mint.txHash,
+    network: mint.network === SOLANA_NETWORK ? mint.network : SOLANA_NETWORK,
+    walletAddress: mint.walletAddress,
+    memo: mint.memo,
+    memoProgramId:
+      mint.memoProgramId === SOLANA_MEMO_PROGRAM_ID
+        ? mint.memoProgramId
+        : SOLANA_MEMO_PROGRAM_ID,
+    explorerUrl: mint.explorerUrl,
+    mintedAt: mint.mintedAt,
+  };
+
+  if (!isLikelySolanaSignature(metadata.txHash)) return null;
+  if (!isValidPledgeMintMetadata(metadata, pledgeText)) return null;
+  return metadata;
+}
+
+export async function GET(req: NextRequest) {
   const count = await cachedCountPledges();
-  return NextResponse.json({ count });
+  if (req.nextUrl.searchParams.get("ledger") !== "1") {
+    return NextResponse.json({ count });
+  }
+
+  const limit = Number(req.nextUrl.searchParams.get("limit") ?? 50);
+  const pledges = await listMintedPledges(Number.isFinite(limit) ? limit : 50);
+  return NextResponse.json({
+    count,
+    pledges: pledges.map((pledge) => ({
+      id: pledge.id,
+      pledgeText: pledge.pledgeText,
+      name: pledge.name,
+      country: pledge.country,
+      countryCode: pledge.countryCode,
+      createdAt: pledge.createdAt,
+      minted: pledge.mintStatus === "minted",
+      txHash: pledge.txHash,
+      mintStatus: pledge.mintStatus,
+      co2PpmAtMint: pledge.co2PpmAtMint,
+      mintNetwork: pledge.mintNetwork,
+      walletAddress: pledge.walletAddress,
+      mintMemo: pledge.mintMemo,
+      memoProgramId: pledge.memoProgramId,
+      explorerUrl: pledge.explorerUrl,
+      mintedAt: pledge.mintedAt,
+    })),
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -28,6 +97,7 @@ export async function POST(req: NextRequest) {
     country_code?: unknown;
     countryCode?: unknown;
     location?: unknown;
+    mint?: unknown;
   };
   try {
     body = await req.json();
@@ -67,7 +137,11 @@ export async function POST(req: NextRequest) {
         })
       : null;
 
-  const result = await mintPledge(pledgeText);
+  const mint = optionalMintMetadata(body.mint, pledgeText);
+  if (body.mint !== undefined && !mint) {
+    return NextResponse.json({ error: "invalid mint metadata" }, { status: 400 });
+  }
+  const co2PpmAtMint = mint ? (await fetchLatestCo2()).ppm : null;
   let saved: Awaited<ReturnType<typeof insertPledge>>;
   try {
     saved = await insertPledge({
@@ -75,6 +149,8 @@ export async function POST(req: NextRequest) {
       name: name || null,
       country: country || null,
       countryCode: countryCode || null,
+      mint,
+      co2PpmAtMint,
     });
   } catch (error) {
     console.error("Failed to insert pledge", error);
@@ -113,9 +189,17 @@ export async function POST(req: NextRequest) {
     name: saved.name,
     country: saved.country,
     countryCode: saved.countryCode,
-    minted: true,
+    minted: saved.mintStatus === "minted",
     ts: Date.now(),
-    txHash: result.txHash,
+    txHash: saved.txHash ?? undefined,
+    mintStatus: saved.mintStatus,
+    co2PpmAtMint: saved.co2PpmAtMint,
+    mintNetwork: saved.mintNetwork ?? undefined,
+    walletAddress: saved.walletAddress,
+    mintMemo: saved.mintMemo,
+    memoProgramId: saved.memoProgramId,
+    explorerUrl: saved.explorerUrl,
+    mintedAt: saved.mintedAt,
   };
   return NextResponse.json({ pledge });
 }

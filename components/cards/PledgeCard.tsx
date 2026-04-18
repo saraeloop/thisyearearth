@@ -41,7 +41,7 @@ export function PledgeCard({
   const [whereFrom, setWhereFrom] = useState(userPledge?.country ?? "");
   const [writing, setWriting] = useState(false);
   const minted = !!userPledge?.minted;
-  const { mint, minting } = useMintPledge();
+  const { mint, record, minting, error } = useMintPledge();
   const isDesktop = useMediaMin(1024);
 
   const pledgeText = useMemo(() => {
@@ -70,21 +70,27 @@ export function PledgeCard({
     }
   };
 
-  const handleSkipMint = () => {
+  const handleSkipMint = async () => {
     if (!canMint) {
       onNext();
       return;
     }
-    onPledge({
-      choice: writing ? null : choice,
-      custom: writing ? custom : null,
+    const result = await record(pledgeText, {
       name: name.trim() || null,
       country: whereFrom.trim() || null,
-      countryCode: null,
-      minted: false,
-      ts: Date.now(),
+      location: userLocation,
     });
-    onNext();
+    if (result) {
+      onPledge({
+        ...result,
+        choice: writing ? null : choice,
+        custom: writing ? custom : null,
+        name: result.name ?? (name.trim() || null),
+        country: result.country ?? (whereFrom.trim() || null),
+        minted: false,
+      });
+      onNext();
+    }
   };
 
   return (
@@ -407,8 +413,25 @@ export function PledgeCard({
                 color: PALETTE.ASH_DIMMER,
               }}
             >
-              Pledges recorded on Solana · Anonymous
+              Solana devnet is optional
             </div>
+            {error && (
+              <div
+                role="status"
+                style={{
+                  marginTop: 10,
+                  textAlign: "center",
+                  fontFamily: FONTS.MONO,
+                  fontSize: 8,
+                  lineHeight: 1.5,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: accent.hex,
+                }}
+              >
+                {error}
+              </div>
+            )}
           </div>
         </>
       ) : (
