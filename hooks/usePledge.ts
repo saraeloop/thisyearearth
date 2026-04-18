@@ -6,6 +6,12 @@ import type { Pledge } from "@/types";
 
 const SEED_COUNT = 1_247_392;
 
+type PledgeMetadata = {
+  name?: string | null;
+  country?: string | null;
+  countryCode?: string | null;
+};
+
 export function usePledgeCount(pollMs = 420) {
   const [count, setCount] = useState(SEED_COUNT);
 
@@ -38,14 +44,19 @@ export function useMintPledge() {
   const [error, setError] = useState<string | null>(null);
 
   const mint = useCallback(
-    async (text: string): Promise<Pledge | null> => {
+    async (text: string, metadata: PledgeMetadata = {}): Promise<Pledge | null> => {
       setMinting(true);
       setError(null);
       try {
         const res = await fetch(ENDPOINTS.PLEDGES, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pledge_text: text }),
+          body: JSON.stringify({
+            pledge_text: text,
+            name: metadata.name,
+            country: metadata.country,
+            countryCode: metadata.countryCode,
+          }),
         });
         if (!res.ok) throw new Error(`mint failed: ${res.status}`);
         const data = (await res.json()) as { pledge: Pledge };

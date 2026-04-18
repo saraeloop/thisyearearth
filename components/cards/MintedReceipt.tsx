@@ -14,10 +14,7 @@ type MintedReceiptProps = {
 
 export function MintedReceipt({ accent, pledge, txHash, onNext }: MintedReceiptProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
+    <div
       style={{
         position: "absolute",
         inset: 0,
@@ -42,27 +39,40 @@ export function MintedReceipt({ accent, pledge, txHash, onNext }: MintedReceiptP
         · Pledge recorded ·
       </div>
 
-      <motion.div
-        variants={stampRotate}
-        animate="animate"
+      <div
         style={{
           width: 180,
           height: 180,
-          borderRadius: "50%",
-          border: `1px dashed ${accent.hex}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           marginBottom: 30,
           position: "relative",
         }}
       >
+        <motion.div
+          variants={stampRotate}
+          animate="animate"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            border: `1px dashed ${accent.hex}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: 140,
+              height: 140,
+              borderRadius: "50%",
+              border: `1px solid ${PALETTE.ASH_DIMMER}`,
+            }}
+          />
+        </motion.div>
         <div
           style={{
-            width: 140,
-            height: 140,
-            borderRadius: "50%",
-            border: `1px solid ${PALETTE.ASH_DIMMER}`,
+            position: "absolute",
+            inset: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -74,7 +84,7 @@ export function MintedReceipt({ accent, pledge, txHash, onNext }: MintedReceiptP
         >
           ✓
         </div>
-      </motion.div>
+      </div>
 
       <div
         style={{
@@ -127,6 +137,6 @@ export function MintedReceipt({ accent, pledge, txHash, onNext }: MintedReceiptP
       >
         Continue →
       </button>
-    </motion.div>
+    </div>
   );
 }
