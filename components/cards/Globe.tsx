@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { PALETTE } from "@/constants/colors";
 import type { Accent } from "@/types";
 import { slowRotate } from "@/constants/variants";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 type GlobeProps = {
   accent: Accent;
@@ -11,23 +12,25 @@ type GlobeProps = {
 };
 
 export function Globe({ accent, active }: GlobeProps) {
+  const isDesktop = useMediaMin(1024);
+
   return (
     <div
       style={{
         position: "absolute",
-        top: "46%",
+        top: isDesktop ? "50%" : "46%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        width: 200,
-        height: 200,
+        width: "clamp(220px, 38vw, 360px)",
+        height: "clamp(220px, 38vw, 360px)",
         zIndex: 5,
         pointerEvents: "none",
       }}
     >
       <motion.svg
         viewBox="-100 -100 200 200"
-        width="200"
-        height="200"
+        width="100%"
+        height="100%"
         variants={slowRotate}
         animate="animate"
         style={{

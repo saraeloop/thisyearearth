@@ -5,10 +5,13 @@ import { PALETTE, FONTS, ACCENTS } from "@/constants/colors";
 import type { CardCommonProps } from "@/types";
 import { CardShell } from "./CardShell";
 import { EarthQuote } from "@/components/ui/CardTypography";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 const accent = ACCENTS.intro;
 
 export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonProps) {
+  const isDesktop = useMediaMin(1024);
+
   return (
     <CardShell
       cardId="intro"
@@ -61,12 +64,12 @@ export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonPro
       <div
         style={{
           position: "absolute",
-          top: 310,
+          top: isDesktop ? 285 : 310,
           left: 32,
           right: 32,
           fontFamily: FONTS.SERIF,
-          fontSize: 36,
-          lineHeight: 1.15,
+          fontSize: isDesktop ? "clamp(54px, 5vw, 76px)" : 36,
+          lineHeight: isDesktop ? 1.05 : 1.15,
           color: PALETTE.ASH,
           fontStyle: "italic",
           fontWeight: 400,
