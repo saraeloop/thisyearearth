@@ -137,14 +137,10 @@ body {
     opacity: 0.55;
   }
 
-  /* Scroll is the only navigation — hide phone-style chrome on desktop */
-  .ew-desktop-root .ew-card-next,
+  /* Scroll is the primary navigation; keep restart available on the final card. */
+  .ew-desktop-root [data-card]:not([data-card="final"]) .ew-card-next,
   .ew-desktop-root .ew-progress-discrete {
     display: none !important;
-  }
-
-  .ew-desktop-root [data-card="final"] .ew-card-next {
-    display: flex !important;
   }
 
   .ew-desktop-root .ew-share-button {

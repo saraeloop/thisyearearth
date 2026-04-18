@@ -31,7 +31,7 @@ export function CardChrome({
           right: 0,
           zIndex: 25,
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: hideShare ? "flex-end" : "space-between",
           alignItems: "center",
           padding: "0 24px",
         }}

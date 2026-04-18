@@ -22,8 +22,6 @@ The site moves through eleven chapters:
 
 Mobile is a native-feeling card experience: swipe, tap, pledge, share.
 
-Desktop is a cinematic scroll experience: one chapter per viewport, Lenis smooth scroll, billboard-scale numbers, and pinned story beats.
-
 ## Stack
 
 - **Next.js 16** with the App Router
@@ -55,11 +53,8 @@ http://localhost:3000
 The app can run without environment variables. Missing services fall back to local or stubbed behavior where possible.
 
 ```bash
-GEMINI_API_KEY=...
 DATABASE_URL=postgres://...
 ```
-
-`GEMINI_API_KEY` enables generated one-sentence Earth voice copy through `/api/earth-voice`.
 
 `DATABASE_URL` enables persistent pledge counts and pledge records through Neon.
 
