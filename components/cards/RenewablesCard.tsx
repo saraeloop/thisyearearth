@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/CardTypography';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { useEarthVoice } from '@/hooks/useEarthVoice';
+import { useMediaMin } from '@/hooks/useBreakpoint';
 
 const accent = ACCENTS.renewables;
 
@@ -22,6 +23,7 @@ export function RenewablesCard({
   voiceTone,
 }: CardCommonProps) {
   const quote = useEarthVoice('renewables', voiceTone);
+  const isDesktop = useMediaMin(1024);
 
   return (
     <CardShell
@@ -69,7 +71,7 @@ export function RenewablesCard({
       <svg
         style={{
           position: 'absolute',
-          bottom: 195,
+          bottom: isDesktop ? 195 : 212,
           left: 40,
           right: 40,
           height: 44,

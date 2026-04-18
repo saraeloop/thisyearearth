@@ -38,7 +38,7 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
       <svg
         style={{
           position: "absolute",
-          bottom: isDesktop ? 168 : 205,
+          bottom: isDesktop ? 190 : 205,
           left: 0,
           right: 0,
           width: "100%",
@@ -74,9 +74,9 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
         dim={["CRYOSPHERE", "ANNUAL NET"]}
       />
 
-      <StatLabel bottom={isDesktop ? 128 : undefined}>Ice lost from my shoulders</StatLabel>
-      <HorizonLine accent={accent} bottom={isDesktop ? 104 : undefined} />
-      <EarthQuote bottom={isDesktop ? 42 : undefined}>&ldquo;{quote}&rdquo;</EarthQuote>
+      <StatLabel bottom={isDesktop ? 148 : undefined}>Ice lost from my shoulders</StatLabel>
+      <HorizonLine accent={accent} bottom={isDesktop ? 124 : undefined} />
+      <EarthQuote bottom={isDesktop ? 62 : undefined}>&ldquo;{quote}&rdquo;</EarthQuote>
     </CardShell>
   );
 }

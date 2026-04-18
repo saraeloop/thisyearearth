@@ -7,11 +7,13 @@ import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 const accent = ACCENTS.forest;
 
 export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: CardCommonProps) {
   const quote = useEarthVoice("forest", voiceTone);
+  const isDesktop = useMediaMin(1024);
 
   return (
     <CardShell
@@ -79,7 +81,7 @@ export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: C
 
       <StatLabel>Forest I lost this year</StatLabel>
       <HorizonLine accent={accent} />
-      <EarthQuote>&ldquo;{quote}&rdquo;</EarthQuote>
+      <EarthQuote bottom={isDesktop ? undefined : 64}>&ldquo;{quote}&rdquo;</EarthQuote>
     </CardShell>
   );
 }
