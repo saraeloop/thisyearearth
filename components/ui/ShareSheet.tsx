@@ -217,7 +217,7 @@ function Sheet({
         style={{
           width: isDesktop ? "min(460px, calc(100vw - 48px))" : "100%",
           maxHeight: isDesktop ? "calc(100dvh - 48px)" : "100dvh",
-          overflowY: isDesktop ? "auto" : "hidden",
+          overflow: "hidden",
           overscrollBehavior: "contain",
           borderRadius: isDesktop ? 18 : "24px 24px 0 0",
           background: "linear-gradient(180deg, #0e1220 0%, #070a12 100%)",
@@ -253,7 +253,7 @@ function Sheet({
           style={{
             width: "100%",
             maxWidth: isDesktop
-              ? 420
+              ? "min(420px, calc((100dvh - 250px) * 9 / 14))"
               : "min(100%, 360px, calc((100dvh - 300px) * 9 / 14))",
             margin: isDesktop ? "0 auto 14px" : "0 auto 16px",
             aspectRatio: "9 / 14",
