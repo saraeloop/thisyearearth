@@ -161,6 +161,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
           <ShareSheet
             open={shareOpen}
             cardId={cardId}
+            pledge={userPledge}
             onClose={() => setShareOpen(false)}
           />
         </div>

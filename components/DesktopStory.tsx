@@ -144,6 +144,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
         <ShareSheet
           open={shareOpen}
           cardId={shareCardId}
+          pledge={userPledge}
           onClose={() => setShareOpen(false)}
         />
       </motion.div>
