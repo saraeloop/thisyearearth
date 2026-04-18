@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import type { CSSProperties, ReactNode } from "react";
-import { motion } from "framer-motion";
-import { PALETTE, FONTS } from "@/constants/colors";
-import type { Accent } from "@/types";
+import type { CSSProperties, ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { PALETTE, FONTS } from '@/constants/colors';
+import type { Accent } from '@/types';
 
 type EarthQuoteProps = {
   children: ReactNode;
@@ -29,20 +29,20 @@ export function EarthQuote({
   right = 32,
 }: EarthQuoteProps) {
   const style: CSSProperties = {
-    position: "absolute",
+    position: 'absolute',
     bottom,
     left,
     right,
     zIndex: 15,
-    textAlign: "center",
+    textAlign: 'center',
     fontFamily: FONTS.SERIF,
     fontSize: 19,
     lineHeight: 1.35,
     color: PALETTE.ASH,
-    fontStyle: "italic",
+    fontStyle: 'italic',
     fontWeight: 400,
-    letterSpacing: "-0.01em",
-    textWrap: "balance",
+    letterSpacing: '-0.01em',
+    textWrap: 'balance',
   };
   return (
     <motion.div
@@ -53,14 +53,14 @@ export function EarthQuote({
     >
       <span
         style={{
-          display: "block",
+          display: 'block',
           fontFamily: FONTS.MONO,
-          fontStyle: "normal",
+          fontStyle: 'normal',
           fontSize: 9,
-          letterSpacing: "0.3em",
+          letterSpacing: '0.3em',
           color: PALETTE.ASH_DIMMER,
           marginBottom: 14,
-          textTransform: "uppercase",
+          textTransform: 'uppercase',
           fontWeight: 500,
         }}
       >
@@ -75,16 +75,16 @@ export function StatLabel({ children, bottom = 180 }: StatLabelProps) {
   return (
     <div
       style={{
-        position: "absolute",
+        position: 'absolute',
         bottom,
         left: 0,
         right: 0,
         zIndex: 15,
-        textAlign: "center",
+        textAlign: 'center',
         fontFamily: FONTS.MONO,
         fontSize: 12.5,
-        letterSpacing: "0.24em",
-        textTransform: "uppercase",
+        letterSpacing: '0.24em',
+        textTransform: 'uppercase',
         color: PALETTE.ASH,
         fontWeight: 500,
       }}
@@ -98,10 +98,10 @@ export function HorizonLine({ accent, bottom = 158 }: HorizonLineProps) {
   return (
     <div
       style={{
-        position: "absolute",
+        position: 'absolute',
         bottom,
-        left: 40,
-        right: 40,
+        left: 25,
+        right: 25,
         zIndex: 15,
         height: 1,
         background: `linear-gradient(90deg, transparent, ${PALETTE.ASH_DIMMER}, ${accent.hex}, ${PALETTE.ASH_DIMMER}, transparent)`,

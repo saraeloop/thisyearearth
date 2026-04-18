@@ -10,6 +10,7 @@ type CardChromeProps = {
   onShare?: () => void;
   onNext?: () => void;
   label?: string;
+  hideShare?: boolean;
   hideNext?: boolean;
 };
 
@@ -17,6 +18,7 @@ export function CardChrome({
   onShare,
   onNext,
   label = "Next",
+  hideShare = false,
   hideNext = false,
 }: CardChromeProps) {
   return (
@@ -34,39 +36,50 @@ export function CardChrome({
           padding: "0 24px",
         }}
       >
-        <button
-          type="button"
-          className="ew-share-button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onShare?.();
-          }}
-          style={{
-            all: "unset",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            padding: "9px 13px",
-            borderRadius: 99,
-            background: "rgba(230, 214, 190, 0.06)",
-            border: "1px solid rgba(230, 214, 190, 0.14)",
-            backdropFilter: "blur(6px)",
-            fontFamily: FONTS.MONO,
-            fontSize: 9.5,
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: PALETTE.ASH_DIM,
-            fontWeight: 500,
-          }}
-        >
-          <ShareIcon size={12} color={PALETTE.ASH_DIM} />
-          Share
-        </button>
+        {!hideShare && (
+          <button
+            type="button"
+            className="ew-share-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShare?.();
+            }}
+            style={{
+              all: "unset",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "9px 13px",
+              borderRadius: 99,
+              background: "rgba(230, 214, 190, 0.06)",
+              border: "1px solid rgba(230, 214, 190, 0.14)",
+              backdropFilter: "blur(6px)",
+              fontFamily: FONTS.MONO,
+              fontSize: 9.5,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: PALETTE.ASH_DIM,
+              fontWeight: 500,
+            }}
+          >
+            <ShareIcon size={12} color={PALETTE.ASH_DIM} />
+            Share
+          </button>
+        )}
         {!hideNext && (
           <div
             className="ew-card-next"
+            role="button"
+            tabIndex={0}
+            data-cursor="hover"
             onClick={(e) => {
+              e.stopPropagation();
+              onNext?.();
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" && e.key !== " ") return;
+              e.preventDefault();
               e.stopPropagation();
               onNext?.();
             }}
