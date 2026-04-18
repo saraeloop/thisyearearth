@@ -1,10 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { PALETTE, FONTS } from "@/constants/colors";
 import { SITE } from "@/config/site";
 import { ShareIcon, ChevronIcon } from "./icons";
-import { chevronDrift } from "@/constants/variants";
 
 type CardChromeProps = {
   onShare?: () => void;
@@ -97,9 +95,7 @@ export function CardChrome({
             }}
           >
             <span>{label}</span>
-            <motion.div
-              variants={chevronDrift}
-              animate="animate"
+            <div
               style={{
                 width: 32,
                 height: 32,
@@ -111,7 +107,7 @@ export function CardChrome({
               }}
             >
               <ChevronIcon size={12} color={PALETTE.ASH} />
-            </motion.div>
+            </div>
           </div>
         )}
       </div>

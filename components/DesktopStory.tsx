@@ -14,6 +14,7 @@ import type { CardId, Location, Pledge, Tweaks } from "@/types";
 import { ShareSheet } from "@/components/ui/ShareSheet";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import { DesktopProgressBar } from "@/components/ui/DesktopProgressBar";
+import { isEditableTarget } from "@/components/ui/dom";
 import { IntroCard } from "@/components/cards/IntroCard";
 import { LocationCard } from "@/components/cards/LocationCard";
 import { TempCard } from "@/components/cards/TempCard";
@@ -98,6 +99,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
         if (e.key === "Escape") setShareOpen(false);
         return;
       }
+      if (isEditableTarget(e.target)) return;
       if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
         scrollToIndex(activeIdx + 1);

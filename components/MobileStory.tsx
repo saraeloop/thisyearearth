@@ -13,6 +13,7 @@ import { SITE } from "@/config/site";
 import type { CardId, Location, Pledge, Tweaks } from "@/types";
 import { SwipeContainer } from "@/components/ui/SwipeContainer";
 import { ShareSheet } from "@/components/ui/ShareSheet";
+import { isEditableTarget } from "@/components/ui/dom";
 import { IntroCard } from "@/components/cards/IntroCard";
 import { LocationCard } from "@/components/cards/LocationCard";
 import { TempCard } from "@/components/cards/TempCard";
@@ -75,6 +76,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
         if (e.key === "Escape") setShareOpen(false);
         return;
       }
+      if (isEditableTarget(e.target)) return;
       if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
         next();

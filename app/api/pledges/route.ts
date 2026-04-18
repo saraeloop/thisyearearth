@@ -43,8 +43,9 @@ export async function POST(req: NextRequest) {
   const countryCode = normalizedCountryCode.length === 2 ? normalizedCountryCode : null;
 
   const result = await mintPledge(pledgeText);
+  let saved: Awaited<ReturnType<typeof insertPledge>>;
   try {
-    await insertPledge({
+    saved = await insertPledge({
       pledgeText,
       name: name || null,
       country: country || null,
@@ -58,6 +59,9 @@ export async function POST(req: NextRequest) {
   const pledge: Pledge = {
     choice: null,
     custom: pledgeText,
+    name: saved.name,
+    country: saved.country,
+    countryCode: saved.countryCode,
     minted: true,
     ts: Date.now(),
     txHash: result.txHash,

@@ -34,6 +34,8 @@ export function PledgeCard({
 }: PledgeCardProps) {
   const [choice, setChoice] = useState<string | null>(userPledge?.choice ?? null);
   const [custom, setCustom] = useState(userPledge?.custom ?? "");
+  const [name, setName] = useState(userPledge?.name ?? "");
+  const [whereFrom, setWhereFrom] = useState(userPledge?.country ?? "");
   const [writing, setWriting] = useState(false);
   const minted = !!userPledge?.minted;
   const { mint, minting } = useMintPledge();
@@ -49,14 +51,36 @@ export function PledgeCard({
 
   const handleMint = async () => {
     if (!canMint) return;
-    const result = await mint(pledgeText);
+    const result = await mint(pledgeText, {
+      name: name.trim() || null,
+      country: whereFrom.trim() || null,
+    });
     if (result) {
       onPledge({
         ...result,
         choice: writing ? null : choice,
         custom: writing ? custom : null,
+        name: result.name ?? (name.trim() || null),
+        country: result.country ?? (whereFrom.trim() || null),
       });
     }
+  };
+
+  const handleSkipMint = () => {
+    if (!canMint) {
+      onNext();
+      return;
+    }
+    onPledge({
+      choice: writing ? null : choice,
+      custom: writing ? custom : null,
+      name: name.trim() || null,
+      country: whereFrom.trim() || null,
+      countryCode: null,
+      minted: false,
+      ts: Date.now(),
+    });
+    onNext();
   };
 
   return (
@@ -187,7 +211,8 @@ export function PledgeCard({
 
             {writing && (
               <>
-                <textarea
+                <input
+                  type="text"
                   value={custom}
                   onChange={(e) => setCustom(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -196,17 +221,17 @@ export function PledgeCard({
                   style={{
                     width: "100%",
                     boxSizing: "border-box",
-                    minHeight: 110,
-                    padding: "16px",
-                    borderRadius: 12,
-                    background: "rgba(230,214,190,0.04)",
-                    border: `1px solid ${accent.hex}55`,
+                    height: 34,
+                    padding: "0 0 3px",
+                    borderRadius: 0,
+                    background: "transparent",
+                    border: 0,
+                    borderBottom: `1px solid ${PALETTE.ASH_DIM}`,
                     fontFamily: FONTS.SERIF,
                     fontSize: 22,
-                    lineHeight: 1.3,
+                    lineHeight: 1,
                     color: PALETTE.ASH,
                     outline: "none",
-                    resize: "none",
                     fontStyle: "italic",
                   }}
                 />
@@ -221,6 +246,80 @@ export function PledgeCard({
                   }}
                 >
                   {custom.length} / 80
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    marginTop: 16,
+                    padding: "0 4px",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: 10,
+                      fontFamily: FONTS.SERIF,
+                      fontSize: 18,
+                      fontStyle: "italic",
+                      color: PALETTE.ASH,
+                    }}
+                  >
+                    <span style={{ color: PALETTE.ASH_DIM }}>— signed,</span>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      maxLength={80}
+                      aria-label="Signed name, optional"
+                      style={{
+                        all: "unset",
+                        flex: 1,
+                        minWidth: 0,
+                        padding: "0 0 4px",
+                        borderBottom: "1px solid rgba(230,214,190,0.45)",
+                        fontFamily: FONTS.SERIF,
+                        fontSize: 19,
+                        lineHeight: 1.2,
+                        fontStyle: "italic",
+                        color: PALETTE.ASH,
+                      }}
+                    />
+                  </label>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: 10,
+                      fontFamily: FONTS.SERIF,
+                      fontSize: 16,
+                      fontStyle: "italic",
+                      color: PALETTE.ASH_DIM,
+                    }}
+                  >
+                    <span>from</span>
+                    <input
+                      value={whereFrom}
+                      onChange={(e) => setWhereFrom(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      maxLength={80}
+                      aria-label="Where from, optional"
+                      style={{
+                        all: "unset",
+                        flex: 1,
+                        minWidth: 0,
+                        padding: "0 0 4px",
+                        borderBottom: "1px solid rgba(230,214,190,0.32)",
+                        fontFamily: FONTS.SERIF,
+                        fontSize: 17,
+                        lineHeight: 1.2,
+                        fontStyle: "italic",
+                        color: PALETTE.ASH,
+                      }}
+                    />
+                  </label>
                 </div>
                 <button
                   onClick={(e) => {
@@ -265,9 +364,37 @@ export function PledgeCard({
               minting={minting}
               onClick={handleMint}
             />
+            <button
+              type="button"
+              disabled={minting}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSkipMint();
+              }}
+              style={{
+                all: "unset",
+                cursor: minting ? "not-allowed" : "pointer",
+                display: "block",
+                width: "100%",
+                boxSizing: "border-box",
+                marginTop: 8,
+                padding: "10px 12px",
+                textAlign: "center",
+                fontFamily: FONTS.MONO,
+                fontSize: 10.5,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: minting ? PALETTE.ASH_DIMMER : PALETTE.ASH_DIM,
+                fontWeight: 600,
+                opacity: minting ? 0.55 : 1,
+                textShadow: minting ? undefined : `0 0 10px ${accent.glow}`,
+              }}
+            >
+              Continue without minting →
+            </button>
             <div
               style={{
-                marginTop: 10,
+                marginTop: 6,
                 textAlign: "center",
                 fontFamily: FONTS.MONO,
                 fontSize: 8,

@@ -29,7 +29,7 @@ export function MintButton({ accent, disabled, minting, onClick }: MintButtonPro
         width: "100%",
         boxSizing: "border-box",
         padding: "16px",
-        borderRadius: 99,
+        borderRadius: 12,
         background: active ? `${accent.hex}40` : "rgba(230,214,190,0.04)",
         border: `1px solid ${active ? accent.hex : "rgba(230,214,190,0.14)"}`,
         fontFamily: FONTS.MONO,

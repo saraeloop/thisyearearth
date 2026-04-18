@@ -65,7 +65,7 @@ export function LocationCard({
       onNext={onNext}
       onShare={onShare}
       clickable={false}
-      hideNext={!detected}
+      nextLabel={detected ? "Next" : "Skip"}
     >
       <Globe accent={accent} active={!!detected} />
 
