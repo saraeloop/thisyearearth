@@ -1,4 +1,8 @@
 import { getSql } from "./client";
+import { cacheLife, cacheTag } from "next/cache";
+import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
+
+export const PLEDGE_COUNT_CACHE_TAG = "pledge-count";
 
 export type PledgeRow = {
   id: string;
@@ -19,6 +23,13 @@ type InsertPledgeInput = {
 };
 
 export async function insertPledge(input: InsertPledgeInput): Promise<PledgeRow> {
+  if (input.pledgeText.length < PLEDGE_TEXT_MIN_LENGTH) {
+    throw new Error("pledgeText is shorter than the supported minimum length");
+  }
+  if (input.pledgeText.length > PLEDGE_TEXT_MAX_LENGTH) {
+    throw new Error("pledgeText exceeds the supported maximum length");
+  }
+
   const row: PledgeRow = {
     id: crypto.randomUUID(),
     pledgeText: input.pledgeText,
@@ -66,4 +77,11 @@ export async function countPledges(): Promise<number> {
     n: number;
   }[];
   return rows[0]?.n ?? 0;
+}
+
+export async function cachedCountPledges(): Promise<number> {
+  "use cache";
+  cacheTag(PLEDGE_COUNT_CACHE_TAG);
+  cacheLife({ stale: 30, revalidate: 30, expire: 60 });
+  return countPledges();
 }
