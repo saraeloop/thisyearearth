@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import * as THREE from "three";
 import type { GlobeMethods } from "react-globe.gl";
 import type { Accent, Location } from "@/types";
 import { useMediaMin } from "@/hooks/useBreakpoint";
@@ -12,6 +11,9 @@ const Globe = dynamic(() => import("react-globe.gl"), {
   ssr: false,
   loading: () => null,
 });
+
+const EARTH_IMAGE_URL = "/earth-blue-marble.jpg";
+const EARTH_BUMP_URL = "/earth-topology.png";
 
 type FinalGlobeProps = {
   accent: Accent;
@@ -89,18 +91,6 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
     return user.length > 0 ? [...SEED_POINTS, ...user] : SEED_POINTS;
   }, [locations, accent.hex]);
 
-  const material = useMemo(
-    () =>
-      new THREE.MeshPhongMaterial({
-        color: "#0a0e1a",
-        emissive: "#050608",
-        shininess: 4,
-        transparent: true,
-        opacity: 0.94,
-      }),
-    [],
-  );
-
   const boxStyle: CSSProperties = isDesktop
     ? {
         position: "absolute",
@@ -145,7 +135,8 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
             atmosphereColor={accent.hex}
             atmosphereAltitude={0.2}
             showGlobe
-            globeMaterial={material}
+            globeImageUrl={EARTH_IMAGE_URL}
+            bumpImageUrl={EARTH_BUMP_URL}
             pointsData={points}
             pointLat="lat"
             pointLng="lng"

@@ -1,10 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { PALETTE, FONTS } from "@/constants/colors";
 import { TOTAL_CARDS } from "@/constants/cards";
 import type { Accent } from "@/types";
-import { pulseDot } from "@/constants/variants";
 
 type CardMetaProps = {
   active: number;
@@ -12,7 +10,7 @@ type CardMetaProps = {
   chapter?: string;
 };
 
-export function CardMeta({ active, accent, chapter }: CardMetaProps) {
+export function CardMeta({ active, chapter }: CardMetaProps) {
   const label = String(active + 1).padStart(2, "0");
   return (
     <>
@@ -20,7 +18,7 @@ export function CardMeta({ active, accent, chapter }: CardMetaProps) {
         className="ew-card-meta"
         style={{
           position: "absolute",
-          top: 82,
+          top: 36,
           left: 24,
           right: 24,
           zIndex: 20,
@@ -36,20 +34,9 @@ export function CardMeta({ active, accent, chapter }: CardMetaProps) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <motion.div
-            variants={pulseDot}
-            animate="animate"
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: "50%",
-              background: accent.hex,
-              boxShadow: `0 0 8px ${accent.hex}`,
-            }}
-          />
-          <span>Wrapped · MMXXVI</span>
+          <span style={{ color: PALETTE.ASH }}>Earth Wrapped · MMXXVI</span>
         </div>
-        <span style={{ color: PALETTE.ASH_DIMMER }}>
+        <span className="ew-card-counter" style={{ color: PALETTE.ASH_DIMMER }}>
           {label} / {String(TOTAL_CARDS).padStart(2, "0")}
         </span>
       </div>
@@ -58,7 +45,7 @@ export function CardMeta({ active, accent, chapter }: CardMetaProps) {
           className="ew-card-chapter"
           style={{
             position: "absolute",
-            top: 132,
+            top: 74,
             left: 24,
             zIndex: 20,
             fontFamily: FONTS.MONO,

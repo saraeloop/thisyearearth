@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const SITE = {
-  name: "Earth Wrapped",
+  name: "Wrapped",
   edition: "MMXXVI",
   domain: "thisyear.earth",
   description:

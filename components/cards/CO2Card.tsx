@@ -66,7 +66,7 @@ export function CO2Card({
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: isDesktop ? 222 : 230,
+            bottom: isDesktop ? 184 : 230,
             zIndex: 8,
             width: '100%',
             height: 80,

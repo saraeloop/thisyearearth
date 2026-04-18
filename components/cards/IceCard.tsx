@@ -7,11 +7,13 @@ import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
 import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useEarthVoice } from "@/hooks/useEarthVoice";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 
 const accent = ACCENTS.ice;
 
 export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: CardCommonProps) {
   const quote = useEarthVoice("ice", voiceTone);
+  const isDesktop = useMediaMin(1024);
 
   return (
     <CardShell
@@ -36,14 +38,14 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
       <svg
         style={{
           position: "absolute",
-          bottom: 200,
+          bottom: isDesktop ? 168 : 205,
           left: 0,
           right: 0,
           width: "100%",
-          height: 80,
-          zIndex: 8,
+          height: isDesktop ? 58 : 54,
+          zIndex: 4,
           pointerEvents: "none",
-          opacity: 0.4,
+          opacity: isDesktop ? 0.32 : 0.34,
         }}
         viewBox="0 0 390 80"
         preserveAspectRatio="none"
@@ -72,9 +74,9 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
         dim={["CRYOSPHERE", "ANNUAL NET"]}
       />
 
-      <StatLabel>Ice lost from my shoulders</StatLabel>
-      <HorizonLine accent={accent} />
-      <EarthQuote>&ldquo;{quote}&rdquo;</EarthQuote>
+      <StatLabel bottom={isDesktop ? 128 : undefined}>Ice lost from my shoulders</StatLabel>
+      <HorizonLine accent={accent} bottom={isDesktop ? 104 : undefined} />
+      <EarthQuote bottom={isDesktop ? 42 : undefined}>&ldquo;{quote}&rdquo;</EarthQuote>
     </CardShell>
   );
 }
