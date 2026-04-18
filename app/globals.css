@@ -5,6 +5,10 @@
   --ew-bg-mid: #0d1322;
   --ew-bg-bottom: #070a12;
   --ew-ash: #e6d6be;
+  --ew-ash-dim: rgba(230, 214, 190, 0.55);
+  --ew-ash-dimmer: rgba(230, 214, 190, 0.32);
+  --ew-font-serif: "DM Serif Display", "Playfair Display", Georgia, serif;
+  --ew-font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 html,
@@ -65,6 +69,11 @@ body {
 .ew-stage-meta,
 .ew-stage-hint {
   display: none;
+}
+
+.ew-progress-discrete,
+.ew-desktop-progress {
+  display: none !important;
 }
 
 /* ───────────────────────────────────────────────────────────── */
@@ -138,6 +147,30 @@ body {
     position: relative;
     z-index: 60;
     pointer-events: auto;
+  }
+
+  .ew-desktop-root .ew-card-meta {
+    top: 48px !important;
+    left: 4vw !important;
+    right: 4vw !important;
+    font-size: 10px !important;
+    letter-spacing: 0.28em !important;
+  }
+
+  .ew-desktop-root .ew-card-chapter {
+    top: 48px !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+    max-width: min(52vw, 620px);
+    text-align: center;
+    font-size: 10px !important;
+    letter-spacing: 0.3em !important;
+    white-space: nowrap;
+  }
+
+  .ew-desktop-root .ew-card-counter {
+    min-width: 72px;
+    text-align: right;
   }
 
   /* hide native cursor when custom cursor is active */

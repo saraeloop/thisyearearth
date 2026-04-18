@@ -25,6 +25,7 @@ export function DesktopProgressBar({ progress }: DesktopProgressBarProps) {
 
   return (
     <div
+      className="ew-desktop-progress"
       style={{
         position: "fixed",
         top: 28,
