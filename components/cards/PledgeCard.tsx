@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PALETTE, FONTS, ACCENTS } from "@/constants/colors";
-import type { CardCommonProps, Pledge } from "@/types";
+import type { CardCommonProps, Location, Pledge } from "@/types";
 import { CardShell } from "./CardShell";
 import { MintedReceipt } from "./MintedReceipt";
 import { MintButton } from "@/components/ui/MintButton";
@@ -11,6 +11,7 @@ import { useMediaMin } from "@/hooks/useBreakpoint";
 
 type PledgeCardProps = CardCommonProps & {
   userPledge: Pledge | null;
+  userLocation: Location | null;
   onPledge: (pledge: Pledge) => void;
 };
 
@@ -30,6 +31,7 @@ export function PledgeCard({
   onShare,
   grainLevel,
   userPledge,
+  userLocation,
   onPledge,
 }: PledgeCardProps) {
   const [choice, setChoice] = useState<string | null>(userPledge?.choice ?? null);
@@ -54,6 +56,7 @@ export function PledgeCard({
     const result = await mint(pledgeText, {
       name: name.trim() || null,
       country: whereFrom.trim() || null,
+      location: userLocation,
     });
     if (result) {
       onPledge({

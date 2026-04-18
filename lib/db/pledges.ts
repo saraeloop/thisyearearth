@@ -61,9 +61,9 @@ export async function insertPledge(input: InsertPledgeInput): Promise<PledgeRow>
 
 export async function countPledges(): Promise<number> {
   const sql = getSql();
-  if (!sql) return memoryStore.length + 1_247_392;
+  if (!sql) return memoryStore.length;
   const rows = (await sql`SELECT COUNT(*)::int AS n FROM pledges`) as {
     n: number;
   }[];
-  return (rows[0]?.n ?? 0) + 1_247_392;
+  return rows[0]?.n ?? 0;
 }

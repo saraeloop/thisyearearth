@@ -21,23 +21,45 @@ type FinalGlobeProps = {
 };
 
 type Point = {
+  id: string;
   lat: number;
   lng: number;
-  size: number;
-  color: string;
 };
 
-const SEED_COUNT = 140;
-const SEED_POINTS: Point[] = Array.from({ length: SEED_COUNT }).map(() => ({
-  lat: (Math.random() * 2 - 1) * 68,
-  lng: (Math.random() * 2 - 1) * 180,
-  size: 0.2 + Math.random() * 0.3,
-  color: "#E6D6BE",
-}));
+function createPointElement() {
+  const el = document.createElement("div");
+  const burst = document.createElement("div");
+  const dot = document.createElement("div");
+
+  el.style.width = "14px";
+  el.style.height = "14px";
+  el.style.borderRadius = "50%";
+  el.style.display = "flex";
+  el.style.alignItems = "center";
+  el.style.justifyContent = "center";
+  el.style.pointerEvents = "none";
+
+  burst.style.width = "14px";
+  burst.style.height = "14px";
+  burst.style.borderRadius = "50%";
+  burst.style.display = "flex";
+  burst.style.alignItems = "center";
+  burst.style.justifyContent = "center";
+
+  dot.style.width = "5px";
+  dot.style.height = "5px";
+  dot.style.borderRadius = "50%";
+  dot.style.background = "#F6EFDE";
+  burst.appendChild(dot);
+  el.appendChild(burst);
+
+  return el;
+}
 
 export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [ready, setReady] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const globeRef = useRef<GlobeMethods | undefined>(undefined);
   const isDesktop = useMediaMin(1024);
@@ -48,8 +70,9 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
 
     const apply = (w: number, h: number) => {
       const minSize = isDesktop ? 320 : 360;
-      const nw = Math.max(minSize, Math.round(w));
-      const nh = Math.max(minSize, Math.round(h));
+      const scale = isDesktop ? 0.91 : 1;
+      const nw = Math.max(minSize, Math.round(w * scale));
+      const nh = Math.max(minSize, Math.round(h * scale));
       setSize((prev) => (prev && prev.w === nw && prev.h === nh ? prev : { w: nw, h: nh }));
     };
 
@@ -67,57 +90,90 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
 
   useEffect(() => {
     if (!ready) return;
-    const instance = globeRef.current;
-    if (!instance) return;
-    const ctrl = instance.controls() as {
-      autoRotate: boolean;
-      autoRotateSpeed: number;
-      enableZoom: boolean;
+    const enableRotation = () => {
+      const instance = globeRef.current;
+      if (!instance) return;
+      instance.resumeAnimation();
+      const ctrl = instance.controls() as {
+        autoRotate: boolean;
+        autoRotateSpeed: number;
+        enableDamping: boolean;
+        enableRotate: boolean;
+        enablePan: boolean;
+        enableZoom: boolean;
+      };
+      ctrl.autoRotate = true;
+      ctrl.autoRotateSpeed = 0.35;
+      ctrl.enableDamping = true;
+      ctrl.enableRotate = true;
+      ctrl.enablePan = false;
+      ctrl.enableZoom = false;
     };
-    ctrl.autoRotate = true;
-    ctrl.autoRotateSpeed = 0.3;
-    ctrl.enableZoom = false;
+
+    enableRotation();
+    const id = window.setInterval(enableRotation, 1000);
+    return () => window.clearInterval(id);
   }, [ready]);
 
   const points = useMemo<Point[]>(() => {
-    const user: Point[] = locations
+    return locations
       .filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lon))
-      .map((l) => ({
+      .map((l, i) => ({
+        id: `${l.countryCode}-${l.lat.toFixed(4)}-${l.lon.toFixed(4)}-${i}`,
         lat: l.lat,
         lng: l.lon,
-        size: 0.6,
-        color: accent.hex,
       }));
-    return user.length > 0 ? [...SEED_POINTS, ...user] : SEED_POINTS;
-  }, [locations, accent.hex]);
+  }, [locations]);
 
   const boxStyle: CSSProperties = isDesktop
     ? {
         position: "absolute",
         inset: 0,
+        transform: "translateY(6dvh)",
         zIndex: 2,
-        pointerEvents: "none",
+        pointerEvents: "auto",
+        cursor: dragging ? "grabbing" : "grab",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        touchAction: "none",
       }
     : {
         position: "absolute",
-        top: "24dvh",
+        top: "28dvh",
         left: "50%",
         width: "min(122vw, 460px)",
         height: "min(122vw, 460px)",
         transform: "translateX(-50%)",
         zIndex: 2,
-        pointerEvents: "none",
+        pointerEvents: "auto",
+        cursor: dragging ? "grabbing" : "grab",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        touchAction: "none",
       };
 
   return (
     <div
       ref={boxRef}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        setDragging(true);
+      }}
+      onPointerMove={(e) => e.stopPropagation()}
+      onPointerUp={(e) => {
+        e.stopPropagation();
+        setDragging(false);
+      }}
+      onPointerCancel={(e) => {
+        e.stopPropagation();
+        setDragging(false);
+      }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+      onWheel={(e) => e.stopPropagation()}
       style={boxStyle}
     >
       {size && (
@@ -137,14 +193,13 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
             showGlobe
             globeImageUrl={EARTH_IMAGE_URL}
             bumpImageUrl={EARTH_BUMP_URL}
-            pointsData={points}
-            pointLat="lat"
-            pointLng="lng"
-            pointAltitude={0.01}
-            pointRadius="size"
-            pointColor="color"
-            pointsMerge
-            enablePointerInteraction={false}
+            htmlElementsData={points}
+            htmlLat="lat"
+            htmlLng="lng"
+            htmlAltitude={0.01}
+            htmlElement={() => createPointElement()}
+            htmlTransitionDuration={0}
+            enablePointerInteraction
             animateIn={false}
             onGlobeReady={() => setReady(true)}
           />

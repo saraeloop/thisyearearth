@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { countPledges, insertPledge } from "@/lib/db/pledges";
+import { recordLocation } from "@/lib/db/locations";
 import { mintPledge } from "@/lib/solana/mint";
 import type { Pledge } from "@/types";
+
+function optionalCoordinate(value: unknown, min: number, max: number): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n) || n < min || n > max) return null;
+  return n;
+}
 
 export async function GET() {
   const count = await countPledges();
@@ -17,6 +25,7 @@ export async function POST(req: NextRequest) {
     country?: unknown;
     country_code?: unknown;
     countryCode?: unknown;
+    location?: unknown;
   };
   try {
     body = await req.json();
@@ -41,6 +50,17 @@ export async function POST(req: NextRequest) {
       ? countryCodeSource.trim().toUpperCase()
       : "";
   const countryCode = normalizedCountryCode.length === 2 ? normalizedCountryCode : null;
+  const location =
+    body.location && typeof body.location === "object"
+      ? (body.location as {
+          country?: unknown;
+          countryCode?: unknown;
+          country_code?: unknown;
+          lat?: unknown;
+          lon?: unknown;
+          lng?: unknown;
+        })
+      : null;
 
   const result = await mintPledge(pledgeText);
   let saved: Awaited<ReturnType<typeof insertPledge>>;
@@ -54,6 +74,31 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Failed to insert pledge", error);
     return NextResponse.json({ error: "pledge storage failed" }, { status: 500 });
+  }
+
+  if (location) {
+    const locationCountry =
+      typeof location.country === "string" ? location.country.trim().slice(0, 80) : "";
+    const locationCodeSource =
+      typeof location.countryCode === "string" ? location.countryCode : location.country_code;
+    const locationCountryCode =
+      typeof locationCodeSource === "string"
+        ? locationCodeSource.trim().toUpperCase()
+        : "";
+    const lat = optionalCoordinate(location.lat, -90, 90);
+    const lng = optionalCoordinate(location.lng ?? location.lon, -180, 180);
+    if (locationCountry && locationCountryCode.length === 2 && lat !== null && lng !== null) {
+      try {
+        await recordLocation({
+          country: locationCountry,
+          countryCode: locationCountryCode,
+          lat,
+          lng,
+        });
+      } catch (error) {
+        console.error("Failed to record pledge location", error);
+      }
+    }
   }
 
   const pledge: Pledge = {

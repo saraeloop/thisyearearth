@@ -1,11 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PALETTE, FONTS, ACCENTS } from '@/constants/colors';
 import type { CardCommonProps, Location, Pledge } from '@/types';
 import { VOICE_QUOTES } from '@/constants/quotes';
 import { CardShell } from './CardShell';
 import { FinalGlobe } from './FinalGlobe';
 import { usePledgeCount } from '@/hooks/usePledge';
+import { ENDPOINTS } from '@/constants/endpoints';
+import { useMediaMin } from '@/hooks/useBreakpoint';
 
 type FinalCardProps = CardCommonProps & {
   userLocation: Location | null;
@@ -13,6 +16,41 @@ type FinalCardProps = CardCommonProps & {
 };
 
 const accent = ACCENTS.final;
+
+function locationId(location: Location) {
+  return `${location.countryCode}:${location.lat.toFixed(4)}:${location.lon.toFixed(4)}`;
+}
+
+function isDrawableLocation(location: Location) {
+  return (
+    Number.isFinite(location.lat) &&
+    Number.isFinite(location.lon) &&
+    !(location.lat === 0 && location.lon === 0)
+  );
+}
+
+type LocationRow = {
+  country: string;
+  countryCode: string;
+  lat: number | string | null;
+  lng: number | string | null;
+};
+
+function rowToLocation(row: LocationRow): Location | null {
+  const lat = row.lat === null ? NaN : Number(row.lat);
+  const lon = row.lng === null ? NaN : Number(row.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  if (lat === 0 && lon === 0) return null;
+  return {
+    city: row.country,
+    region: row.country,
+    country: row.country,
+    countryCode: row.countryCode,
+    lat,
+    lon,
+    tz: 'UTC',
+  };
+}
 
 export function FinalCard({
   active,
@@ -24,7 +62,37 @@ export function FinalCard({
   userPledge,
 }: FinalCardProps) {
   const pledgeCount = usePledgeCount();
+  const [globeLocations, setGlobeLocations] = useState<Location[]>([]);
+  const isDesktop = useMediaMin(1024);
   const closingLine = VOICE_QUOTES.final?.[voiceTone] ?? '';
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLocations = async () => {
+      try {
+        const res = await fetch(ENDPOINTS.LOCATIONS);
+        if (!res.ok) return;
+        const data = (await res.json()) as { locations: LocationRow[] };
+        if (cancelled) return;
+        setGlobeLocations(data.locations.map(rowToLocation).filter((loc): loc is Location => loc !== null));
+      } catch {
+        // The final card can still render without live location points.
+      }
+    };
+
+    void loadLocations();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const finalGlobeLocations = userLocation
+    ? [
+        userLocation,
+        ...globeLocations.filter((location) => locationId(location) !== locationId(userLocation)),
+      ].filter(isDrawableLocation)
+    : globeLocations.filter(isDrawableLocation);
 
   return (
     <CardShell
@@ -39,7 +107,7 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          top: 172,
+          top: isDesktop ? 112 : 130,
           left: 0,
           right: 0,
           textAlign: 'center',
@@ -58,7 +126,7 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          top: 220,
+          top: isDesktop ? 160 : '190px',
           left: 32,
           right: 32,
           zIndex: 10,
@@ -80,14 +148,14 @@ export function FinalCard({
       <div className="ew-final-globe">
         <FinalGlobe
           accent={accent}
-          locations={userLocation ? [userLocation] : []}
+          locations={finalGlobeLocations}
         />
       </div>
 
       <div
         style={{
           position: 'absolute',
-          bottom: 198,
+          bottom: 168,
           left: 0,
           right: 0,
           zIndex: 15,
@@ -97,10 +165,10 @@ export function FinalCard({
         <div
           style={{
             fontFamily: FONTS.MONO,
-            fontSize: 9,
+            fontSize: 10,
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
-            color: PALETTE.ASH_DIMMER,
+            color: PALETTE.ASH_DIM,
             marginBottom: 6,
           }}
         >
@@ -138,7 +206,7 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          bottom: 80,
+          bottom: 56,
           left: 32,
           right: 32,
           zIndex: 15,
@@ -179,7 +247,7 @@ export function FinalCard({
               color: PALETTE.ASH_DIMMER,
             }}
           >
-            read from {userLocation.city}
+            written from {userLocation.city}
           </div>
         )}
       </div>

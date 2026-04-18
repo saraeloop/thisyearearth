@@ -10,6 +10,9 @@ type LocationState = {
   location: Location | null;
 };
 
+const SESSION_LOCATION_KEY = "thisyearearth:session-location";
+const SAVED_LOCATION_KEY = "thisyearearth:session-location-saved";
+
 const FAKE_LOCATIONS: Location[] = [
   {
     city: "San Francisco",
@@ -61,9 +64,21 @@ async function persistLocation(loc: Location) {
         lng: loc.lon,
       }),
     });
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SAVED_LOCATION_KEY, locationKey(loc));
+    }
   } catch {
     // Location storage should not block the story.
   }
+}
+
+function locationKey(loc: Location) {
+  return `${loc.countryCode}:${loc.lat.toFixed(4)}:${loc.lon.toFixed(4)}`;
+}
+
+function storeSessionLocation(loc: Location) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SESSION_LOCATION_KEY, JSON.stringify(loc));
 }
 
 export function useLocation(initial: Location | null = null) {
@@ -78,12 +93,14 @@ export function useLocation(initial: Location | null = null) {
     await new Promise((r) => setTimeout(r, 1200));
     const pick = FAKE_LOCATIONS[Math.floor(Math.random() * FAKE_LOCATIONS.length)];
     setState({ loading: false, error: null, location: pick });
+    storeSessionLocation(pick);
     void persistLocation(pick);
     return pick;
   }, []);
 
   const setManual = useCallback((loc: Location) => {
     setState({ loading: false, error: null, location: loc });
+    storeSessionLocation(loc);
     void persistLocation(loc);
   }, []);
 

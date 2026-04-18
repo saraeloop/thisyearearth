@@ -4,20 +4,30 @@ import { useCallback, useEffect, useState } from "react";
 import { ENDPOINTS } from "@/constants/endpoints";
 import type { Pledge } from "@/types";
 
-const SEED_COUNT = 1_247_392;
+const SESSION_LOCATION_KEY = "thisyearearth:session-location";
+const SAVED_LOCATION_KEY = "thisyearearth:session-location-saved";
 
 type PledgeMetadata = {
   name?: string | null;
   country?: string | null;
   countryCode?: string | null;
+  location?: SessionLocation | null;
 };
 
-export function usePledgeCount(pollMs = 420) {
-  const [count, setCount] = useState(SEED_COUNT);
+type SessionLocation = {
+  country: string;
+  countryCode: string;
+  lat: number;
+  lon: number;
+};
+
+export function usePledgeCount(pollMs = 30_000) {
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const loadCount = async () => {
       try {
         const res = await fetch(ENDPOINTS.PLEDGES);
         if (!res.ok) return;
@@ -26,10 +36,10 @@ export function usePledgeCount(pollMs = 420) {
       } catch {
         // ignore
       }
-    })();
-    const id = setInterval(() => {
-      setCount((c) => c + Math.floor(Math.random() * 4) + 1);
-    }, pollMs);
+    };
+
+    void loadCount();
+    const id = setInterval(loadCount, pollMs);
     return () => {
       cancelled = true;
       clearInterval(id);
@@ -37,6 +47,55 @@ export function usePledgeCount(pollMs = 420) {
   }, [pollMs]);
 
   return count;
+}
+
+function readSessionLocation(): SessionLocation | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(SESSION_LOCATION_KEY);
+  if (!raw) return null;
+  try {
+    const loc = JSON.parse(raw) as Partial<SessionLocation>;
+    if (
+      typeof loc.country !== "string" ||
+      typeof loc.countryCode !== "string" ||
+      typeof loc.lat !== "number" ||
+      typeof loc.lon !== "number"
+    ) {
+      return null;
+    }
+    return loc as SessionLocation;
+  } catch {
+    return null;
+  }
+}
+
+function locationKey(loc: SessionLocation) {
+  return `${loc.countryCode}:${loc.lat.toFixed(4)}:${loc.lon.toFixed(4)}`;
+}
+
+async function ensureSessionLocationSaved() {
+  if (typeof window === "undefined") return;
+  const loc = readSessionLocation();
+  if (!loc) return;
+
+  const key = locationKey(loc);
+  if (window.localStorage.getItem(SAVED_LOCATION_KEY) === key) return;
+
+  try {
+    const res = await fetch(ENDPOINTS.LOCATIONS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        country: loc.country,
+        country_code: loc.countryCode,
+        lat: loc.lat,
+        lng: loc.lon,
+      }),
+    });
+    if (res.ok) window.localStorage.setItem(SAVED_LOCATION_KEY, key);
+  } catch {
+    // Location storage should not block pledge submission.
+  }
 }
 
 export function useMintPledge() {
@@ -56,9 +115,11 @@ export function useMintPledge() {
             name: metadata.name,
             country: metadata.country,
             countryCode: metadata.countryCode,
+            location: metadata.location,
           }),
         });
         if (!res.ok) throw new Error(`mint failed: ${res.status}`);
+        await ensureSessionLocationSaved();
         const data = (await res.json()) as { pledge: Pledge };
         return data.pledge;
       } catch (e) {

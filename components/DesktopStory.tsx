@@ -196,6 +196,7 @@ function renderCard(idx: number, ctx: RenderCardContext) {
         key={key}
         {...props}
         userPledge={ctx.userPledge}
+        userLocation={ctx.userLocation}
         onPledge={ctx.setUserPledge}
       />
     );
