@@ -1,17 +1,27 @@
-"use client";
+'use client';
 
-import { FONTS, ACCENTS } from "@/constants/colors";
-import type { CardCommonProps } from "@/types";
-import { CardShell } from "./CardShell";
-import { StatBlock, StatLadder, StatSourceMeta } from "./StatBlock";
-import { EarthQuote, StatLabel, HorizonLine } from "@/components/ui/CardTypography";
-import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { useEarthVoice } from "@/hooks/useEarthVoice";
+import { FONTS, ACCENTS } from '@/constants/colors';
+import type { CardCommonProps } from '@/types';
+import { CardShell } from './CardShell';
+import { StatBlock, StatLadder, StatSourceMeta } from './StatBlock';
+import {
+  EarthQuote,
+  StatLabel,
+  HorizonLine,
+} from '@/components/ui/CardTypography';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { useEarthVoice } from '@/hooks/useEarthVoice';
 
 const accent = ACCENTS.renewables;
 
-export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone }: CardCommonProps) {
-  const quote = useEarthVoice("renewables", voiceTone);
+export function RenewablesCard({
+  active,
+  onNext,
+  onShare,
+  grainLevel,
+  voiceTone,
+}: CardCommonProps) {
+  const quote = useEarthVoice('renewables', voiceTone);
 
   return (
     <CardShell
@@ -23,16 +33,16 @@ export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone 
     >
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 170,
           left: 0,
           right: 0,
-          textAlign: "center",
+          textAlign: 'center',
           zIndex: 10,
           fontFamily: FONTS.MONO,
           fontSize: 10,
-          letterSpacing: "0.3em",
-          textTransform: "uppercase",
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
           color: accent.hex,
           fontWeight: 500,
         }}
@@ -47,20 +57,24 @@ export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone 
         desktopFontSize="clamp(380px, 40vw, 520px)"
         translateY={-10}
       >
-        <span style={{ color: accent.hex, fontSize: "0.5em", verticalAlign: "top" }}>+</span>
+        <span
+          style={{ color: accent.hex, fontSize: '0.5em', verticalAlign: 'top' }}
+        >
+          +
+        </span>
         <AnimatedNumber value={32} />
-        <span style={{ color: accent.hex, fontSize: "0.5em" }}>%</span>
+        <span style={{ color: accent.hex, fontSize: '0.5em' }}>%</span>
       </StatBlock>
 
       <svg
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 195,
           left: 40,
           right: 40,
           height: 44,
           zIndex: 8,
-          pointerEvents: "none",
+          pointerEvents: 'none',
         }}
         viewBox="0 0 310 44"
         preserveAspectRatio="none"
@@ -82,17 +96,17 @@ export function RenewablesCard({ active, onNext, onShare, grainLevel, voiceTone 
         accent={accent}
         top={260}
         rows={[
-          { left: "— SOLAR", right: "· +42%" },
-          { left: "— WIND", right: "· +18%" },
-          { left: "— BATTERIES", right: "· +76%" },
-          { left: "— EV SALES", right: "· +24%" },
-          { left: "— COAL", right: "· −3%", active: true },
+          { left: '— SOLAR', right: '· +42%' },
+          { left: '— WIND', right: '· +18%' },
+          { left: '— BATTERIES', right: '· +76%' },
+          { left: '— EV SALES', right: '· +24%' },
+          { left: '— COAL', right: '· −3%', active: true },
         ]}
       />
       <StatSourceMeta
         top={260}
-        rows={["SRC: IEA", "SRC: IRENA"]}
-        dim={["CAPACITY ADDED", "YOY · GW"]}
+        rows={['SRC: IEA', 'SRC: IRENA']}
+        dim={['CAPACITY ADDED', 'YOY · GW']}
       />
 
       <StatLabel>The energy you chose</StatLabel>

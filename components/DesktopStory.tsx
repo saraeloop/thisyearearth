@@ -79,14 +79,14 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   const cursorAccent = ACCENTS[CARD_IDS[activeIdx]];
 
   const scrollToIndex = useCallback(
-    (idx: number) => {
+    (idx: number, immediate = false) => {
       const clamped = Math.max(0, Math.min(N - 1, idx));
       const target = clamped * window.innerHeight;
       const lenis = lenisRef.current;
       if (lenis) {
-        lenis.scrollTo(target, { duration: 1.25 });
+        lenis.scrollTo(target, immediate ? { immediate: true } : { duration: 1.25 });
       } else {
-        window.scrollTo({ top: target });
+        window.scrollTo({ top: target, behavior: immediate ? "instant" : "auto" });
       }
     },
     [lenisRef],
@@ -117,7 +117,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
 
   const sectionProps = (idx: number) => ({
     active: idx,
-    onNext: () => scrollToIndex(idx + 1),
+    onNext: () => scrollToIndex(idx >= N - 1 ? 0 : idx + 1, idx >= N - 1),
     onShare: () => openShare(CARD_IDS[idx]),
     grainLevel: tweaks.grain,
     voiceTone: tweaks.voice,

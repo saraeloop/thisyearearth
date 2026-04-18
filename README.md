@@ -1,80 +1,96 @@
 # Earth Wrapped · MMXXVI
 
-A letter from the planet. Eleven cards. One year. Signed, Earth.
+Earth is the user. 2026 is the year being reviewed.
 
-Interactive year-in-review experience delivered as an 11-card story: global temperature anomaly, atmospheric CO₂, ice loss, forest loss, biodiversity, plastic, renewables — plus interactive cards for location, pledges (minted to an on-chain ledger), and a closing constellation of everyone who read tonight.
+`thisyear.earth` is an immersive climate year-in-review told as eleven full-screen chapters. It borrows the emotional grammar of a wrapped recap, but the narrator is Earth: ancient, factual, dry, tired, and still here.
+
+## Experience
+
+The site moves through eleven chapters:
+
+1. **Preface · The Record**
+2. **Chapter II · Coordinates**
+3. **Chapter III · The Fever**
+4. **Chapter IV · The Atmosphere**
+5. **Chapter V · The Melt**
+6. **Chapter VI · The Canopy**
+7. **Chapter VII · The Ledger**
+8. **Chapter VIII · The Roll Call**
+9. **Chapter IX · The Residue**
+10. **Chapter X · The Turn**
+11. **Epilogue · Sincerely**
+
+Mobile is a native-feeling card experience: swipe, tap, pledge, share.
+
+Desktop is a cinematic scroll experience: one chapter per viewport, Lenis smooth scroll, billboard-scale numbers, and pinned story beats.
 
 ## Stack
 
-- **Next.js 16** (app router, Turbopack, React 19)
-- **TypeScript** (strict)
+- **Next.js 16** with the App Router
+- **React 19**
+- **TypeScript strict**
 - **Tailwind CSS v4**
-- **Framer Motion** — every animation
-- **Neon** (`@neondatabase/serverless`) — pledges + locations
-- **Solana** (stubbed) — pledge tx hashes
-- **Gemini** — dynamic Earth quotes (optional, falls back to static lines)
+- **Framer Motion**
+- **Lenis** for desktop smooth scroll
+- **NOAA GML** daily Mauna Loa CO₂ data
+- **Neon** for pledge data
+- **Solana memo transactions** for the pledge ledger
+- **globe.gl / three-globe assets** for the final reader globe
 
-## Quick start
+## Local Development
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev
 ```
 
-### Environment
+The dev server runs at:
 
-All optional — app runs fully without them (fallback data, in-memory store, stub tx hashes).
+```text
+http://localhost:3000
+```
+
+## Environment
+
+The app can run without environment variables. Missing services fall back to local or stubbed behavior where possible.
 
 ```bash
-# .env.local
-GEMINI_API_KEY=...        # enables tone-variant quotes via /api/earth-voice
-DATABASE_URL=postgres://... # Neon connection string for pledges + locations
+GEMINI_API_KEY=...
+DATABASE_URL=postgres://...
 ```
 
-## Project structure
+`GEMINI_API_KEY` enables generated one-sentence Earth voice copy through `/api/earth-voice`.
 
-```
-app/                  routes + API handlers
-  api/co2/            server-side NOAA Mauna Loa fetch
-  api/earth-voice/    Gemini proxy (tone-variant quotes)
-  api/pledges/        GET count · POST mint
-components/
-  cards/              one file per card — all use CardShell
-  ui/                 CardShell, ProgressBar, ShareSheet, MintButton, SwipeContainer
-  Story.tsx           orchestrator (nav, swipe, keyboard, persistence)
-constants/            card ids, colors, animation variants, endpoints, copy
-hooks/                useSwipe, useCountUp, useLocation, useEarthVoice, useCo2, usePledge
-lib/
-  api/                co2.ts, gemini.ts (server-only)
-  db/                 Neon clients — pledges.ts, locations.ts
-  solana/             mint.ts (stubbed tx hashes)
-types/                shared types with barrel index — CardId, Accent, Location, Pledge, ClimateData, CardData, Tweaks, VoiceTone
-config/site.ts        site metadata
-```
-
-## Conventions
-
-- Components never call APIs directly — always through hooks.
-- `lib/` is pure TypeScript, no React.
-- All magic strings live in `constants/`; all external URLs in `constants/endpoints.ts`.
-- Gemini calls proxied through `app/api/earth-voice/route.ts`. CO₂ fetched server-side via `app/api/co2/route.ts`.
-- Every card uses `CardShell`. Single responsibility per file.
-- Shared types (used in >1 file) live in `types/` with a barrel. Single-use types colocate in the file that owns them.
-- Component prop types are named `{ComponentName}Props` — never a generic `Props`.
+`DATABASE_URL` enables persistent pledge counts and pledge records through Neon.
 
 ## Scripts
 
 ```bash
-npm run dev     # dev server
-npm run build   # production build + type check
-npm start       # run production build
-npm run lint    # eslint
+npm run dev
+npm run build
+npm start
+npm run lint
 ```
 
-## Navigation
+## Data
 
-- `←` / `→` · arrow keys
-- `space` · advance
-- swipe on touch
-- tap sides (on stat cards)
-- interactive cards: location, pledge, final — advance via in-card button
+The CO₂ chapter reads NOAA GML daily Mauna Loa data server-side and caches the response. The card uses the latest reading, year-to-date high, year-to-date average, long-term delta, and a subtle sparkline.
+
+Other climate figures are presented as editorial chapter data inside the experience:
+
+- global temperature anomaly
+- ice loss
+- forest loss
+- species threatened
+- plastic production
+- renewable energy growth
+
+## Ledger
+
+The pledge chapter asks for one small action for next year. The product language for the Solana interaction is:
+
+```text
+MINT TO THE LEDGER
+```
+
+Pledges can be stored through Neon and represented with a Solana memo transaction hash.

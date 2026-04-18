@@ -143,6 +143,10 @@ body {
     display: none !important;
   }
 
+  .ew-desktop-root [data-card="final"] .ew-card-next {
+    display: flex !important;
+  }
+
   .ew-desktop-root .ew-share-button {
     position: relative;
     z-index: 60;

@@ -72,6 +72,7 @@ export function CardShell({
         onShare={onShare}
         onNext={onNext}
         label={nextLabel}
+        hideShare={cardId !== "final"}
         hideNext={hideNext}
       />
     </motion.div>

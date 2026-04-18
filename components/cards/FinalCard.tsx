@@ -5,7 +5,6 @@ import type { CardCommonProps, Location, Pledge } from '@/types';
 import { VOICE_QUOTES } from '@/constants/quotes';
 import { CardShell } from './CardShell';
 import { FinalGlobe } from './FinalGlobe';
-import { HorizonLine } from '@/components/ui/CardTypography';
 import { usePledgeCount } from '@/hooks/usePledge';
 
 type FinalCardProps = CardCommonProps & {
@@ -135,8 +134,6 @@ export function FinalCard({
           </div>
         )}
       </div>
-
-      <HorizonLine accent={accent} bottom={138} />
 
       <div
         style={{
