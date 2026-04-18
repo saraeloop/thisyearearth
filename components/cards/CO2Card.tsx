@@ -124,7 +124,7 @@ export function CO2Card({
 
       <StatLabel>Above preindustrial</StatLabel>
       <HorizonLine accent={accent} />
-      <EarthQuote>&ldquo;{quote}&rdquo;</EarthQuote>
+      <EarthQuote bottom={isDesktop ? undefined : 64}>&ldquo;{quote}&rdquo;</EarthQuote>
       <StatSourceMeta
         rows={['SRC: NOAA GML']}
         dim={['MAUNA LOA', 'PRELIMINARY']}
