@@ -143,6 +143,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
                 key="pledge"
                 {...common}
                 userPledge={userPledge}
+                userLocation={userLocation}
                 onPledge={setUserPledge}
               />
             )}

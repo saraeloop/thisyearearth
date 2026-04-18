@@ -36,7 +36,14 @@ export async function recordLocation(loc: RecordLocationInput): Promise<void> {
   }
   await sql`
     INSERT INTO locations (country, country_code, lat, lng)
-    VALUES (${loc.country}, ${loc.countryCode}, ${loc.lat ?? null}, ${loc.lng ?? null})
+    SELECT ${loc.country}, ${loc.countryCode}, ${loc.lat ?? null}, ${loc.lng ?? null}
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM locations
+      WHERE country_code = ${loc.countryCode}
+        AND lat IS NOT DISTINCT FROM ${loc.lat ?? null}
+        AND lng IS NOT DISTINCT FROM ${loc.lng ?? null}
+    )
   `;
 }
 
