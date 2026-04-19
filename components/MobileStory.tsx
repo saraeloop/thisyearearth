@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ACTIVE_STORAGE_KEY,
@@ -109,6 +109,16 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   const cardId: CardId = CARD_IDS[active];
   const isInteractive = INTERACTIVE_CARD_IDS.has(cardId);
   const bg = CARD_BACKGROUNDS[cardId];
+
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty("--ew-story-card-bg", bg);
+    document.body.style.setProperty("--ew-story-card-bg", bg);
+
+    return () => {
+      document.documentElement.style.removeProperty("--ew-story-card-bg");
+      document.body.style.removeProperty("--ew-story-card-bg");
+    };
+  }, [bg]);
 
   const common = {
     active,

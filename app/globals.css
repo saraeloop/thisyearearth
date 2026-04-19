@@ -4,7 +4,8 @@
   --ew-bg-top: #0a0e1a;
   --ew-bg-mid: #0d1322;
   --ew-bg-bottom: #070a12;
-  --ew-story-atmosphere:
+  --ew-story-card-bg: var(--ew-bg-bottom);
+  --ew-story-atmosphere-image:
     radial-gradient(
       ellipse 120% 62% at 50% 112%,
       rgba(230, 214, 190, 0.08) 0%,
@@ -13,14 +14,14 @@
     ),
     radial-gradient(
       ellipse 140% 90% at 50% 100%,
-      rgba(26, 29, 46, 0.52) 0%,
+      rgba(26, 29, 46, 0.42) 0%,
       transparent 62%
     ),
     linear-gradient(
       180deg,
-      var(--ew-bg-top) 0%,
-      var(--ew-bg-mid) 48%,
-      var(--ew-bg-bottom) 100%
+      rgba(10, 14, 26, 0.72) 0%,
+      rgba(13, 19, 34, 0.42) 48%,
+      rgba(7, 10, 18, 0.18) 100%
     );
   --ew-ash: #e6d6be;
   --ew-ash-dim: rgba(230, 214, 190, 0.55);
@@ -34,7 +35,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: var(--ew-story-atmosphere);
+  background-color: var(--ew-story-card-bg);
+  background-image: var(--ew-story-atmosphere-image);
   color: var(--ew-ash);
   font-family: "JetBrains Mono", ui-monospace, monospace;
 }
@@ -526,7 +528,8 @@ body {
 html.ew-story-locked,
 body.ew-story-locked {
   overscroll-behavior: none;
-  background: var(--ew-story-atmosphere);
+  background-color: var(--ew-story-card-bg);
+  background-image: var(--ew-story-atmosphere-image);
 }
 
 body.ew-story-locked {
@@ -562,12 +565,9 @@ body.ew-story-locked {
   inset: 0;
   width: 100%;
   max-width: 100%;
-  height: 100vh;
-  height: 100svh;
-  height: 100dvh;
-  min-height: 100svh;
   overflow: hidden;
-  background: var(--ew-story-atmosphere);
+  background-color: var(--ew-story-card-bg);
+  background-image: var(--ew-story-atmosphere-image);
   overscroll-behavior: none;
 }
 
@@ -578,7 +578,8 @@ body.ew-story-locked {
   min-height: 0;
   padding: 0;
   box-sizing: border-box;
-  background: var(--ew-story-atmosphere);
+  background-color: var(--ew-story-card-bg);
+  background-image: var(--ew-story-atmosphere-image);
   overflow: hidden;
 }
 
@@ -607,7 +608,8 @@ body.ew-story-locked {
   border-radius: 0;
   overflow: hidden;
   z-index: 2;
-  background: var(--ew-story-atmosphere);
+  background-color: var(--ew-story-card-bg);
+  background-image: var(--ew-story-atmosphere-image);
 }
 
 .ew-stage-meta,
