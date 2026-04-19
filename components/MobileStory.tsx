@@ -115,9 +115,17 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
     const vars = getStoryBgVars(cardId);
     const html = document.documentElement;
     const body = document.body;
+    const themeMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    const previousThemeColor = themeMeta?.content;
+
     for (const [key, value] of Object.entries(vars)) {
       html.style.setProperty(key, value);
       body.style.setProperty(key, value);
+    }
+    if (isPhone && themeMeta) {
+      themeMeta.content = vars["--ew-story-bg-bottom"];
     }
 
     return () => {
@@ -125,8 +133,11 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
         html.style.removeProperty(key);
         body.style.removeProperty(key);
       }
+      if (isPhone && themeMeta && previousThemeColor) {
+        themeMeta.content = previousThemeColor;
+      }
     };
-  }, [cardId]);
+  }, [cardId, isPhone]);
 
   const common = {
     active,
