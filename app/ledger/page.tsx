@@ -1,173 +1,219 @@
-import { FONTS, PALETTE } from "@/constants/colors";
-import { SITE } from "@/config/site";
-import { listMintedPledges } from "@/lib/db/pledges";
-import { getSolanaDevnetExplorerUrl } from "@/lib/solana/mint";
-import { connection } from "next/server";
-import { Suspense } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
+import { Suspense } from 'react';
+import Link from 'next/link';
+import { SITE } from '@/config/site';
+import { LargeGrain, GrainTexture } from '@/components/ui/Grain';
+import { LEDGER_CSS_VARS } from '@/constants/colors';
+import type { PledgeRow } from '@/lib/db/pledges';
+import {
+  formatLedgerDate,
+  ledgerCountryLabel,
+  ledgerExplorerHref,
+  LEDGER_LIMIT,
+  listLedgerEntries,
+} from '@/lib/ledger';
+import { SOLANA_NETWORK } from '@/lib/solana/mint';
+import { connection } from 'next/server';
 
-function formatDate(value: Date | string | null) {
-  if (!value) return "pending";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "pending";
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function shortHash(value: string) {
-  return `${value.slice(0, 6)}...${value.slice(-6)}`;
-}
-
-function EmptyLedgerMessage({ children }: { children: ReactNode }) {
+function LedgerState({
+  tone = 'empty',
+  heading,
+  children,
+}: {
+  tone?: 'empty' | 'error';
+  heading: string;
+  children: ReactNode;
+}) {
   return (
-    <div
-      style={{
-        padding: "28px 0",
-        borderTop: "1px solid rgba(230,214,190,0.18)",
-        fontFamily: FONTS.MONO,
-        fontSize: 11,
-        letterSpacing: "0.2em",
-        textTransform: "uppercase",
-        color: PALETTE.ASH_DIM,
-      }}
-    >
-      {children}
-    </div>
+    <section className={`ew-ledger-state ew-ledger-state--${tone}`}>
+      <div className="ew-ledger-state-icon" />
+      <div className="ew-ledger-state-head">{heading}</div>
+      <div className="ew-ledger-state-sub">{children}</div>
+    </section>
+  );
+}
+
+function LedgerLoading() {
+  return (
+    <LedgerState heading="The Ledger Is Waiting">
+      The pledges are still arriving.
+    </LedgerState>
+  );
+}
+
+function LedgerEntry({
+  pledge,
+  number,
+}: {
+  pledge: PledgeRow;
+  number: number;
+}) {
+  const href = ledgerExplorerHref(pledge);
+  const txHash = pledge.txHash;
+
+  return (
+    <article className="ew-ledger-entry">
+      <div className="ew-ledger-meta">
+        <span className="ew-ledger-number">
+          #{String(number).padStart(4, '0')}
+        </span>
+        <span className="ew-ledger-address">
+          {ledgerCountryLabel(pledge)}
+          <span className="ew-ledger-sep">·</span>
+          {formatLedgerDate(pledge.mintedAt)}
+        </span>
+      </div>
+
+      <div className="ew-ledger-entry-pledge">{pledge.pledgeText}</div>
+      <div className="ew-ledger-author">{pledge.name || 'Anonymous'}</div>
+
+      <div className="ew-ledger-entry-foot">
+        <div className="ew-ledger-telemetry">
+          {pledge.co2PpmAtMint ?
+            <span>
+              CO2{' '}
+              <span className="ew-ledger-telemetry-value">
+                {pledge.co2PpmAtMint}
+              </span>{' '}
+              PPM
+            </span>
+          : <span>
+              NETWORK{' '}
+              <span className="ew-ledger-telemetry-value">
+                {pledge.mintNetwork ?? SOLANA_NETWORK}
+              </span>
+            </span>
+          }
+        </div>
+
+        {href && txHash ?
+          <a
+            className="ew-ledger-verify"
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="ew-ledger-arrow">↗</span>
+            Verify
+          </a>
+        : null}
+      </div>
+    </article>
   );
 }
 
 async function LedgerEntries() {
   await connection();
-  const pledges = await listMintedPledges(100);
 
-  if (pledges.length === 0) {
-    return <EmptyLedgerMessage>No devnet proofs recorded yet.</EmptyLedgerMessage>;
+  let pledges: PledgeRow[] | null = null;
+  try {
+    pledges = await listLedgerEntries(LEDGER_LIMIT);
+  } catch {
+    pledges = null;
   }
 
-  return pledges.map((pledge) => {
-    const txHash = pledge.txHash;
-    const href =
-      pledge.explorerUrl ?? (txHash ? getSolanaDevnetExplorerUrl(txHash) : null);
-
+  if (!pledges) {
     return (
-      <article
-        key={pledge.id}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) auto",
-          gap: 18,
-          alignItems: "start",
-          padding: "18px 0",
-          borderTop: "1px solid rgba(230,214,190,0.16)",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontFamily: FONTS.SERIF,
-              fontSize: "clamp(22px, 4vw, 34px)",
-              lineHeight: 1.15,
-              fontStyle: "italic",
-              color: PALETTE.ASH,
-            }}
-          >
-            &ldquo;{pledge.pledgeText}&rdquo;
-          </div>
-          <div
-            style={{
-              marginTop: 10,
-              fontFamily: FONTS.MONO,
-              fontSize: 10,
-              lineHeight: 1.8,
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: PALETTE.ASH_DIM,
-            }}
-          >
-            {pledge.name ? `Signed ${pledge.name}` : "Unsigned"} ·{" "}
-            {formatDate(pledge.mintedAt)}
-            {pledge.co2PpmAtMint ? ` · ${pledge.co2PpmAtMint} ppm` : ""}
-          </div>
-        </div>
-
-        {href && txHash && (
-          <a
-            href={href}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              fontFamily: FONTS.MONO,
-              fontSize: 10,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: PALETTE.ASH,
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}
-          >
-            TX · {shortHash(txHash)}
-          </a>
-        )}
-      </article>
+      <LedgerState tone="error" heading="Temporarily Unavailable">
+        The pledges are still there. Solana is just breathing.
+      </LedgerState>
     );
-  });
+  }
+
+  if (pledges.length === 0) {
+    return (
+      <LedgerState heading="The Ledger Is Waiting">
+        Be the first to seal a pledge.
+      </LedgerState>
+    );
+  }
+
+  return (
+    <>
+      <section className="ew-ledger-entries" aria-label="Minted pledges">
+        {pledges.map((pledge, index) => (
+          <LedgerEntry
+            key={pledge.id}
+            pledge={pledge}
+            number={pledges.length - index}
+          />
+        ))}
+      </section>
+      <div className="ew-ledger-end">
+        End of record · {pledges.length.toLocaleString()} shown
+      </div>
+    </>
+  );
+}
+
+async function LedgerCount() {
+  await connection();
+
+  let count: number | null = null;
+  try {
+    const pledges = await listLedgerEntries(LEDGER_LIMIT);
+    count = pledges.length;
+  } catch {
+    count = null;
+  }
+
+  return (
+    <span className="ew-ledger-count-number">
+      {count === null ? '—' : count.toLocaleString()}
+    </span>
+  );
 }
 
 export default function LedgerPage() {
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        padding: "56px max(24px, 6vw)",
-        background: `linear-gradient(180deg, ${PALETTE.BG_TOP}, ${PALETTE.BG_BOTTOM})`,
-        color: PALETTE.ASH,
-      }}
-    >
-      <header style={{ maxWidth: 980, margin: "0 auto 42px" }}>
-        <div
-          style={{
-            fontFamily: FONTS.MONO,
-            fontSize: 10,
-            letterSpacing: "0.3em",
-            textTransform: "uppercase",
-            color: PALETTE.ASH_DIM,
-            marginBottom: 14,
-          }}
-        >
-          {SITE.name} · Devnet Proof Ledger
-        </div>
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: FONTS.SERIF,
-            fontSize: "clamp(42px, 8vw, 92px)",
-            lineHeight: 0.95,
-            fontStyle: "italic",
-            fontWeight: 400,
-            letterSpacing: 0,
-          }}
-        >
-          Pledges minted
-          <br />
-          to Solana.
-        </h1>
-      </header>
+    <main className="ew-ledger-shell" style={LEDGER_CSS_VARS}>
+      <div className="ew-ledger-fog" aria-hidden="true">
+        <LargeGrain opacity={0.12} />
+        <GrainTexture opacity={0.05} />
+      </div>
+      <div className="ew-ledger-page" data-screen-label="The Ledger">
+        <nav className="ew-ledger-nav" aria-label="Ledger navigation">
+          <div>
+            <span className="ew-ledger-dot" />
+            {SITE.domain}
+          </div>
+          <Link href="/">← Wrapped</Link>
+        </nav>
 
-      <section
-        style={{
-          maxWidth: 980,
-          margin: "0 auto",
-          display: "grid",
-          gap: 10,
-        }}
-      >
-        <Suspense fallback={<EmptyLedgerMessage>Loading devnet proofs.</EmptyLedgerMessage>}>
+        <header className="ew-ledger-lede">
+          <div className="ew-ledger-mark">the</div>
+          <h1 className="ew-ledger-title">The Ledger</h1>
+          <div className="ew-ledger-bar" />
+          <div className="ew-ledger-sub">
+            Pledges sealed to Solana
+            <span className="ew-ledger-sep">·</span>
+            Earth Day MMXXVI
+            <span className="ew-ledger-sep">·</span>
+            <span className="ew-ledger-permanent">permanent</span>
+          </div>
+          <div className="ew-ledger-count">
+            <span className="ew-ledger-live" />
+            <Suspense
+              fallback={<span className="ew-ledger-count-number">—</span>}
+            >
+              <LedgerCount />
+            </Suspense>
+            <span>Entries</span>
+          </div>
+        </header>
+
+        <Suspense fallback={<LedgerLoading />}>
           <LedgerEntries />
         </Suspense>
-      </section>
+
+        <footer className="ew-ledger-foot">
+          <div className="ew-ledger-brand">{SITE.domain}</div>
+          <Link className="ew-ledger-cta" href="/">
+            <span className="ew-ledger-arrow">←</span>
+            Write Your Pledge
+          </Link>
+        </footer>
+      </div>
     </main>
   );
 }
