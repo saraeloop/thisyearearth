@@ -4,6 +4,24 @@
   --ew-bg-top: #0a0e1a;
   --ew-bg-mid: #0d1322;
   --ew-bg-bottom: #070a12;
+  --ew-story-atmosphere:
+    radial-gradient(
+      ellipse 120% 62% at 50% 112%,
+      rgba(230, 214, 190, 0.08) 0%,
+      rgba(26, 29, 46, 0.28) 34%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 140% 90% at 50% 100%,
+      rgba(26, 29, 46, 0.52) 0%,
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      var(--ew-bg-top) 0%,
+      var(--ew-bg-mid) 48%,
+      var(--ew-bg-bottom) 100%
+    );
   --ew-ash: #e6d6be;
   --ew-ash-dim: rgba(230, 214, 190, 0.55);
   --ew-ash-dimmer: rgba(230, 214, 190, 0.32);
@@ -16,7 +34,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: var(--ew-bg-bottom);
+  background: var(--ew-story-atmosphere);
   color: var(--ew-ash);
   font-family: "JetBrains Mono", ui-monospace, monospace;
 }
@@ -508,7 +526,7 @@ body {
 html.ew-story-locked,
 body.ew-story-locked {
   overscroll-behavior: none;
-  background: var(--ew-bg-bottom);
+  background: var(--ew-story-atmosphere);
 }
 
 body.ew-story-locked {
@@ -542,14 +560,14 @@ body.ew-story-locked {
   --ew-story-final-signoff-bottom: calc(var(--ew-story-bottom-safe) + 56px);
   position: fixed;
   inset: 0;
-  width: 100vw;
+  width: 100%;
   max-width: 100%;
   height: 100vh;
   height: 100svh;
   height: 100dvh;
   min-height: 100svh;
   overflow: hidden;
-  background: var(--ew-bg-bottom);
+  background: var(--ew-story-atmosphere);
   overscroll-behavior: none;
 }
 
@@ -560,7 +578,7 @@ body.ew-story-locked {
   min-height: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: var(--ew-bg-bottom);
+  background: var(--ew-story-atmosphere);
   overflow: hidden;
 }
 
@@ -589,7 +607,7 @@ body.ew-story-locked {
   border-radius: 0;
   overflow: hidden;
   z-index: 2;
-  background: var(--ew-bg-bottom);
+  background: var(--ew-story-atmosphere);
 }
 
 .ew-stage-meta,
