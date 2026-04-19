@@ -1,15 +1,20 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { PALETTE, FONTS, ACCENTS } from "@/constants/colors";
-import type { CardCommonProps } from "@/types";
-import { CardShell } from "./CardShell";
-import { EarthQuote } from "@/components/ui/CardTypography";
-import { useMediaMin } from "@/hooks/useBreakpoint";
+import { motion } from 'framer-motion';
+import { PALETTE, FONTS, ACCENTS } from '@/constants/colors';
+import type { CardCommonProps } from '@/types';
+import { CardShell } from './CardShell';
+import { EarthQuote } from '@/components/ui/CardTypography';
+import { useMediaMin } from '@/hooks/useBreakpoint';
 
 const accent = ACCENTS.intro;
 
-export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonProps) {
+export function IntroCard({
+  active,
+  onNext,
+  onShare,
+  grainLevel,
+}: CardCommonProps) {
   const isDesktop = useMediaMin(1024);
 
   return (
@@ -23,17 +28,17 @@ export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonPro
     >
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 170,
           left: 0,
           right: 0,
-          textAlign: "center",
+          textAlign: 'center',
           fontFamily: FONTS.SERIF,
           fontSize: 80,
           lineHeight: 1,
           color: PALETTE.ASH_FAINT,
-          fontStyle: "italic",
-          letterSpacing: "0.05em",
+          fontStyle: 'italic',
+          letterSpacing: '0.05em',
           zIndex: 4,
         }}
       >
@@ -45,15 +50,15 @@ export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonPro
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6, duration: 1 }}
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 270,
           left: 0,
           right: 0,
-          textAlign: "center",
+          textAlign: 'center',
           fontFamily: FONTS.MONO,
           fontSize: 10,
-          letterSpacing: "0.3em",
-          textTransform: "uppercase",
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
           color: PALETTE.ASH_DIMMER,
           zIndex: 4,
         }}
@@ -63,20 +68,20 @@ export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonPro
 
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: isDesktop ? 285 : 310,
           left: 32,
           right: 32,
           fontFamily: FONTS.SERIF,
-          fontSize: isDesktop ? "clamp(54px, 5vw, 76px)" : 36,
+          fontSize: isDesktop ? 'clamp(54px, 5vw, 76px)' : 36,
           lineHeight: isDesktop ? 1.05 : 1.15,
           color: PALETTE.ASH,
-          fontStyle: "italic",
+          fontStyle: 'italic',
           fontWeight: 400,
-          letterSpacing: "-0.02em",
-          textAlign: "center",
+          letterSpacing: '-0.02em',
+          textAlign: 'center',
           zIndex: 5,
-          textWrap: "balance",
+          textWrap: 'balance',
         }}
       >
         <motion.div
@@ -104,16 +109,16 @@ export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonPro
 
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 100,
           left: 24,
           zIndex: 15,
           fontFamily: FONTS.MONO,
           fontSize: 8.5,
-          letterSpacing: "0.18em",
+          letterSpacing: '0.18em',
           color: PALETTE.ASH_DIMMER,
           lineHeight: 1.8,
-          textTransform: "uppercase",
+          textTransform: 'uppercase',
         }}
       >
         <div>Filed: 2026.04.17</div>
@@ -121,17 +126,17 @@ export function IntroCard({ active, onNext, onShare, grainLevel }: CardCommonPro
       </div>
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 100,
           right: 24,
           zIndex: 15,
           fontFamily: FONTS.MONO,
           fontSize: 8.5,
-          letterSpacing: "0.18em",
+          letterSpacing: '0.18em',
           color: PALETTE.ASH_DIMMER,
           lineHeight: 1.8,
-          textTransform: "uppercase",
-          textAlign: "right",
+          textTransform: 'uppercase',
+          textAlign: 'right',
         }}
       >
         <div>Vol. MMXXVI</div>
