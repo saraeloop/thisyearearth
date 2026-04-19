@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import {
   AnimatePresence,
   motion,
@@ -9,7 +9,6 @@ import {
 } from "framer-motion";
 import { CARD_IDS } from "@/constants/cards";
 import { ACCENTS } from "@/constants/colors";
-import { CARD_BACKGROUNDS } from "@/constants/backgrounds";
 import type { CardId, Location, Pledge, Tweaks } from "@/types";
 import { ShareSheet } from "@/components/ui/ShareSheet";
 import { CustomCursor } from "@/components/ui/CustomCursor";
@@ -44,8 +43,8 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   const scrollYProgress = useMotionValue(0);
 
   const stops = CARD_IDS.map((_, i) => i / (N - 1));
-  const bgStops = CARD_IDS.map((id) => CARD_BACKGROUNDS[id]);
-  const backgroundColor = useTransform(scrollYProgress, stops, bgStops);
+  const accentStops = CARD_IDS.map((id) => ACCENTS[id].glow);
+  const accentGlow = useTransform(scrollYProgress, stops, accentStops);
 
   useEffect(() => {
     let raf = 0;
@@ -132,7 +131,10 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
         style={{ height: `${N * 100}dvh`, position: "relative" }}
       />
 
-      <motion.div className="ew-desktop-stage" style={{ backgroundColor }}>
+      <motion.div
+        className="ew-desktop-stage"
+        style={{ ["--ew-story-accent-glow" as string]: accentGlow } as CSSProperties}
+      >
         <AnimatePresence initial={false} mode="sync">
           {renderCard(activeIdx, {
             sectionProps,

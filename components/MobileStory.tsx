@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   ACTIVE_STORAGE_KEY,
   CARD_IDS,
   INTERACTIVE_CARD_IDS,
   TOTAL_CARDS,
 } from "@/constants/cards";
-import { CARD_BACKGROUNDS } from "@/constants/backgrounds";
+import { getStoryBgVars } from "@/constants/storyBg";
 import { SITE } from "@/config/site";
 import type { CardId, Location, Pledge, Tweaks } from "@/types";
 import { SwipeContainer } from "@/components/ui/SwipeContainer";
@@ -108,17 +108,23 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
 
   const cardId: CardId = CARD_IDS[active];
   const isInteractive = INTERACTIVE_CARD_IDS.has(cardId);
-  const bg = CARD_BACKGROUNDS[cardId];
 
   useLayoutEffect(() => {
-    document.documentElement.style.setProperty("--ew-story-card-bg", bg);
-    document.body.style.setProperty("--ew-story-card-bg", bg);
+    const vars = getStoryBgVars(cardId);
+    const html = document.documentElement;
+    const body = document.body;
+    for (const [key, value] of Object.entries(vars)) {
+      html.style.setProperty(key, value);
+      body.style.setProperty(key, value);
+    }
 
     return () => {
-      document.documentElement.style.removeProperty("--ew-story-card-bg");
-      document.body.style.removeProperty("--ew-story-card-bg");
+      for (const key of Object.keys(vars)) {
+        html.style.removeProperty(key);
+        body.style.removeProperty(key);
+      }
     };
-  }, [bg]);
+  }, [cardId]);
 
   const common = {
     active,
@@ -130,12 +136,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
 
   return (
     <SwipeContainer onNext={next} onPrev={prev} className="ew-stage">
-      <motion.div
-        className="ew-stage-bg"
-        initial={false}
-        animate={{ backgroundColor: bg }}
-        transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
-      >
+      <div className="ew-stage-bg">
         {!isInteractive && (
           <div className="ew-tap-zones">
             <div onClick={prev} className="ew-tap-left" />
@@ -208,7 +209,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
           <span>·</span>
           <span>swipe on mobile</span>
         </div>
-      </motion.div>
+      </div>
     </SwipeContainer>
   );
 }
