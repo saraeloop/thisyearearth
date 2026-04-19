@@ -159,7 +159,7 @@ export function FinalCard({
           position: 'absolute',
           bottom: isDesktop
             ? 168
-            : 'calc(env(safe-area-inset-bottom, 0px) + 168px)',
+            : 'calc(var(--ew-story-bottom-safe, 0px) + 168px)',
           left: 0,
           right: 0,
           zIndex: 15,
@@ -212,7 +212,7 @@ export function FinalCard({
           position: 'absolute',
           bottom: isDesktop
             ? 56
-            : 'calc(env(safe-area-inset-bottom, 0px) + 56px)',
+            : 'calc(var(--ew-story-bottom-safe, 0px) + 56px)',
           left: 32,
           right: 32,
           zIndex: 15,

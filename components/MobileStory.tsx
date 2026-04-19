@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ACTIVE_STORAGE_KEY,
@@ -27,6 +27,11 @@ import { RenewablesCard } from "@/components/cards/RenewablesCard";
 import { FinalCard } from "@/components/cards/FinalCard";
 
 type MobileStoryProps = { tweaks: Tweaks };
+type StoryViewportStyle = CSSProperties & Record<"--ew-story-viewport-height", string>;
+
+const DEFAULT_STORY_VIEWPORT_STYLE: StoryViewportStyle = {
+  "--ew-story-viewport-height": "100svh",
+};
 
 function clampIndex(n: number): number {
   if (!Number.isFinite(n)) return 0;
@@ -39,6 +44,46 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [userPledge, setUserPledge] = useState<Pledge | null>(null);
   const [restoredActive, setRestoredActive] = useState(false);
+  const [viewportStyle, setViewportStyle] = useState<StoryViewportStyle>(
+    DEFAULT_STORY_VIEWPORT_STYLE,
+  );
+
+  useEffect(() => {
+    let frame = 0;
+
+    const updateViewportHeight = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const height = Math.round(
+          window.visualViewport?.height ?? window.innerHeight,
+        );
+        if (!Number.isFinite(height) || height <= 0) return;
+
+        const nextStyle: StoryViewportStyle = {
+          "--ew-story-viewport-height": `${height}px`,
+        };
+        setViewportStyle((current) =>
+          current["--ew-story-viewport-height"] === nextStyle["--ew-story-viewport-height"]
+            ? current
+            : nextStyle,
+        );
+      });
+    };
+
+    updateViewportHeight();
+    window.visualViewport?.addEventListener("resize", updateViewportHeight);
+    window.visualViewport?.addEventListener("scroll", updateViewportHeight);
+    window.addEventListener("resize", updateViewportHeight);
+    window.addEventListener("orientationchange", updateViewportHeight);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.visualViewport?.removeEventListener("resize", updateViewportHeight);
+      window.visualViewport?.removeEventListener("scroll", updateViewportHeight);
+      window.removeEventListener("resize", updateViewportHeight);
+      window.removeEventListener("orientationchange", updateViewportHeight);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,7 +154,12 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   };
 
   return (
-    <SwipeContainer onNext={next} onPrev={prev} className="ew-stage">
+    <SwipeContainer
+      onNext={next}
+      onPrev={prev}
+      className="ew-stage"
+      style={viewportStyle}
+    >
       <motion.div
         className="ew-stage-bg"
         initial={false}
