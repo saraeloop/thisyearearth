@@ -1,9 +1,6 @@
-import type { Accent, CardId } from "@/types";
 import { LargeGrain, GrainTexture } from "./Grain";
 
 type CardBackgroundProps = {
-  accent?: Accent;
-  cardId?: CardId;
   grainLevel?: number;
 };
 

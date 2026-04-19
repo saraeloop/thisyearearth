@@ -64,7 +64,7 @@ export function CardShell({
       onClick={effectiveClickable ? onNext : undefined}
       style={shellStyle}
     >
-      <CardBackground accent={accent} cardId={cardId} grainLevel={grainLevel} />
+      <CardBackground grainLevel={grainLevel} />
       <ProgressBar total={TOTAL_CARDS} active={active} accent={accent} />
       <CardMeta active={active} accent={accent} chapter={chapter} />
       {children}
