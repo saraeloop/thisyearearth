@@ -22,6 +22,7 @@ export function CardChrome({
   return (
     <>
       <div
+        className="ew-card-chrome"
         style={{
           position: "absolute",
           bottom: "var(--ew-story-nav-bottom, 28px)",
@@ -112,6 +113,7 @@ export function CardChrome({
         )}
       </div>
       <div
+        className="ew-card-footer"
         style={{
           position: "absolute",
           bottom: "var(--ew-story-footer-bottom, 8px)",

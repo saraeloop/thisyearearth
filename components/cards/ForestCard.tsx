@@ -79,7 +79,7 @@ export function ForestCard({ active, onNext, onShare, grainLevel, voiceTone }: C
 
       <StatLabel>Forest I lost this year</StatLabel>
       <HorizonLine accent={accent} />
-      <EarthQuote>&ldquo;{quote}&rdquo;</EarthQuote>
+      <EarthQuote belowHorizonOnMobile>&ldquo;{quote}&rdquo;</EarthQuote>
     </CardShell>
   );
 }

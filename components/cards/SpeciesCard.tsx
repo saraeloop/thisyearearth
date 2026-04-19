@@ -78,7 +78,7 @@ export function SpeciesCard({ active, onNext, onShare, grainLevel, voiceTone }: 
 
       <StatLabel>Species on my list</StatLabel>
       <HorizonLine accent={accent} />
-      <EarthQuote>&ldquo;{quote}&rdquo;</EarthQuote>
+      <EarthQuote belowHorizonOnMobile>&ldquo;{quote}&rdquo;</EarthQuote>
     </CardShell>
   );
 }

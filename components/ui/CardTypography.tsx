@@ -4,12 +4,14 @@ import type { CSSProperties, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { PALETTE, FONTS } from '@/constants/colors';
 import type { Accent } from '@/types';
+import { useMediaMax } from '@/hooks/useBreakpoint';
 
 type EarthQuoteProps = {
   children: ReactNode;
   bottom?: CSSProperties['bottom'];
   left?: number;
   right?: number;
+  belowHorizonOnMobile?: boolean;
 };
 
 type StatLabelProps = {
@@ -27,10 +29,16 @@ export function EarthQuote({
   bottom = 'var(--ew-story-quote-bottom, 90px)',
   left = 32,
   right = 32,
+  belowHorizonOnMobile = false,
 }: EarthQuoteProps) {
+  const isPhone = useMediaMax(767);
+  const pinBelowHorizon = belowHorizonOnMobile && isPhone;
   const style: CSSProperties = {
     position: 'absolute',
-    bottom,
+    top: pinBelowHorizon
+      ? 'calc(100% - var(--ew-story-horizon-bottom, 158px) + 18px)'
+      : undefined,
+    bottom: pinBelowHorizon ? 'auto' : bottom,
     left,
     right,
     zIndex: 15,
@@ -46,13 +54,18 @@ export function EarthQuote({
   };
   return (
     <motion.div
-      className="ew-earth-quote"
+      className={
+        belowHorizonOnMobile
+          ? 'ew-earth-quote ew-earth-quote--below-horizon-mobile'
+          : 'ew-earth-quote'
+      }
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1], delay: 0.3 }}
       style={style}
     >
       <span
+        className="ew-earth-quote-source"
         style={{
           display: 'block',
           fontFamily: FONTS.MONO,
@@ -67,7 +80,7 @@ export function EarthQuote({
       >
         — Earth
       </span>
-      {children}
+      <span className="ew-earth-quote-text">{children}</span>
     </motion.div>
   );
 }
