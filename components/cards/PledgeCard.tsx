@@ -108,9 +108,7 @@ export function PledgeCard({
           <div
             style={{
               position: "absolute",
-              top: isDesktop
-                ? 180
-                : "calc(var(--ew-story-top-safe, 20px) + clamp(68px, 12svh, 104px))",
+              top: isDesktop ? 180 : "var(--ew-story-pledge-title-top, 112px)",
               left: isDesktop ? 32 : 24,
               right: isDesktop ? 32 : 24,
               textAlign: "center",
@@ -149,9 +147,7 @@ export function PledgeCard({
           <div
             style={{
               position: "absolute",
-              top: isDesktop
-                ? 340
-                : "calc(var(--ew-story-top-safe, 20px) + clamp(166px, 27svh, 224px))",
+              top: isDesktop ? 340 : "var(--ew-story-pledge-form-top, 220px)",
               left: isDesktop ? "50%" : 24,
               right: isDesktop ? "auto" : 24,
               width: isDesktop ? "min(560px, calc(100vw - 96px))" : "auto",
@@ -372,9 +368,7 @@ export function PledgeCard({
           <div
             style={{
               position: "absolute",
-              bottom: isDesktop
-                ? 80
-                : "calc(var(--ew-story-bottom-safe, 0px) + 26px)",
+              bottom: isDesktop ? 80 : "var(--ew-story-action-bottom, 26px)",
               left: isDesktop ? "50%" : 24,
               right: isDesktop ? "auto" : 24,
               width: isDesktop ? "min(560px, calc(100vw - 96px))" : "auto",
