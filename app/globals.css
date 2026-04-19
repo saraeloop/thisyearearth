@@ -506,21 +506,21 @@ body {
 /* Mobile + Tablet (≤ 1023px) — full-viewport card, no frame    */
 /* ───────────────────────────────────────────────────────────── */
 .ew-stage {
+  --ew-story-viewport-height: 100svh;
+  --ew-story-top-safe: max(env(safe-area-inset-top, 0px), 20px);
+  --ew-story-bottom-safe: env(safe-area-inset-bottom, 0px);
   width: 100vw;
-  height: 100svh;
-  height: 100dvh;
-  min-height: 100svh;
-  min-height: 100dvh;
+  height: var(--ew-story-viewport-height);
+  min-height: var(--ew-story-viewport-height);
   overflow: hidden;
+  background: #050608;
 }
 
 .ew-stage-bg {
   position: relative;
   width: 100vw;
-  height: 100svh;
-  height: 100dvh;
-  min-height: 100svh;
-  min-height: 100dvh;
+  height: var(--ew-story-viewport-height);
+  min-height: var(--ew-story-viewport-height);
   padding: 0;
   box-sizing: border-box;
   background-color: #0a0e1a;
@@ -545,23 +545,14 @@ body {
 .ew-card-frame {
   position: relative;
   width: 100vw;
-  height: 100svh;
-  height: 100dvh;
+  height: var(--ew-story-viewport-height);
+  min-height: var(--ew-story-viewport-height);
   max-width: 100%;
-  max-height: 100svh;
-  max-height: 100dvh;
+  max-height: var(--ew-story-viewport-height);
   border-radius: 0;
   overflow: hidden;
   z-index: 2;
   background: #050608;
-}
-
-@supports (-webkit-touch-callout: none) {
-  .ew-stage,
-  .ew-stage-bg,
-  .ew-card-frame {
-    min-height: -webkit-fill-available;
-  }
 }
 
 .ew-stage-meta,
