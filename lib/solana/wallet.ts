@@ -63,10 +63,6 @@ function logSolanaDebug(
   console.info(`[solana:${scope}]`, details);
 }
 
-function logSimulation(scope: string, value: unknown) {
-  console.info(`[solana:${scope}]`, value);
-}
-
 function isWalletRejection(error: unknown) {
   if (!error || typeof error !== "object") return false;
   const { code, message } = error as { code?: unknown; message?: unknown };
@@ -108,43 +104,6 @@ async function connectWallet(provider: SolanaWalletProvider) {
   const publicKey = connectedPublicKey ?? provider.publicKey?.toString();
   if (!publicKey) throw new Error("Wallet connection failed.");
   return publicKey;
-}
-
-async function simulateUnsignedTransaction({
-  connection,
-  feePayer,
-  recentBlockhash,
-  instruction,
-}: {
-  connection: Connection;
-  feePayer: PublicKey;
-  recentBlockhash: string;
-  instruction: TransactionInstruction;
-}) {
-  const message = new TransactionMessage({
-    payerKey: feePayer,
-    recentBlockhash,
-    instructions: [instruction],
-  }).compileToV0Message();
-  const simulation = await connection.simulateTransaction(
-    new VersionedTransaction(message),
-    {
-      sigVerify: false,
-      commitment: "confirmed",
-    },
-  );
-
-  logSimulation("preflight", {
-    err: simulation.value.err,
-    logs: simulation.value.logs,
-    unitsConsumed: simulation.value.unitsConsumed,
-  });
-
-  if (simulation.value.err) {
-    throw new Error(
-      `Solana preflight simulation failed: ${JSON.stringify(simulation.value.err)}`,
-    );
-  }
 }
 
 export async function mintPledgeOnDevnet(
@@ -199,27 +158,9 @@ export async function mintPledgeOnDevnet(
   });
 
   let txHash: string;
-  let appPreflightPassed = false;
   try {
-    await simulateUnsignedTransaction({
-      connection,
-      feePayer,
-      recentBlockhash: latestBlockhash.blockhash,
-      instruction: memoInstruction,
-    });
-    appPreflightPassed = true;
-
     if (provider.signTransaction) {
       const signed = await provider.signTransaction(transaction);
-      const simulation = await connection.simulateTransaction(signed, {
-        sigVerify: true,
-        commitment: "confirmed",
-      });
-      if (simulation.value.err) {
-        console.error("[solana:simulate:logs]", simulation.value.logs);
-        console.error("[solana:simulate:error]", simulation.value.err);
-        throw new Error(`Solana simulation failed: ${JSON.stringify(simulation.value.err)}`);
-      }
       txHash = await connection.sendRawTransaction(signed.serialize(), {
         preflightCommitment: "confirmed",
         maxRetries: 3,
@@ -233,12 +174,6 @@ export async function mintPledgeOnDevnet(
   } catch (error) {
     if (isWalletRejection(error)) {
       throw new Error("Mint cancelled.");
-    }
-    if (appPreflightPassed) {
-      await logSolanaError("wallet-preflight", error, connection);
-      throw new Error(
-        `Phantom rejected this after ${SOLANA_NETWORK} preflight passed. Confirm Phantom is set to ${SOLANA_NETWORK}, then try again.`,
-      );
     }
     await logSolanaError("send", error, connection);
     throw error;
