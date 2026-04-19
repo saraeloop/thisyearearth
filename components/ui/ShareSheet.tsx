@@ -8,7 +8,7 @@ import { SITE } from "@/config/site";
 import { backdrop, sheetSlideUp, EASE_OUT } from "@/constants/variants";
 import { LargeGrain, GrainTexture } from "./Grain";
 import { usePledgeCount } from "@/hooks/usePledge";
-import { useMediaMin } from "@/hooks/useBreakpoint";
+import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 
 type ShareSheetProps = {
   open: boolean;
@@ -37,12 +37,13 @@ const PRESET_PLEDGE_LINES: Record<string, string[]> = {
 
 const SHARE_COUNT_THRESHOLD = 100;
 const SHARE_URL = `https://${SITE.domain}`;
+const LEDGER_URL = `${SHARE_URL}/ledger`;
 const SHARE_TEXT = "I made a pledge to Earth.";
 const POSTER_WIDTH = 1080;
 const POSTER_HEIGHT = 1920;
 const POSTER_FILENAME = "earth-wrapped-pledge.png";
 
-type ShareActionKind = "story" | "x" | "copy-image" | "copy-link";
+type ShareActionKind = "story" | "x" | "copy-image" | "copy-link" | "ledger";
 
 const QUOTE_LAYOUTS = {
   hero: {
@@ -107,6 +108,7 @@ function Sheet({
   const quoteLength = getPledgeCharacterLength(pledge, pledgeLines);
   const quoteLayout = getQuoteLayout(quoteLength);
   const isDesktop = useMediaMin(1024);
+  const isPhone = useMediaMax(767);
   const footerPledgeText =
     pledgeCount >= SHARE_COUNT_THRESHOLD
       ? `Pledges minted · live · ${pledgeCount.toLocaleString("en-US")}`
@@ -185,6 +187,12 @@ function Sheet({
       return "Link copied.";
     });
 
+  const handleLedger = () =>
+    runAction("ledger", () => {
+      window.location.href = LEDGER_URL;
+      return "Opening ledger.";
+    });
+
   return (
     <motion.div
       variants={backdrop}
@@ -254,7 +262,9 @@ function Sheet({
             width: "100%",
             maxWidth: isDesktop
               ? "min(420px, calc((100dvh - 250px) * 9 / 14))"
-              : "min(100%, 360px, calc((100dvh - 300px) * 9 / 14))",
+              : isPhone
+                ? "100%"
+                : "min(100%, 360px, calc((100dvh - 300px) * 9 / 14))",
             margin: isDesktop ? "0 auto 14px" : "0 auto 16px",
             aspectRatio: "9 / 14",
             borderRadius: 14,
@@ -300,19 +310,21 @@ function Sheet({
           <div
             style={{
               position: "absolute",
-              top: isDesktop ? "18%" : "17%",
-              left: 26,
+              top: isDesktop ? "18%" : isPhone ? "16%" : "17%",
+              left: isPhone ? 22 : 26,
               width: isDesktop
                 ? quoteLayout.previewWidthDesktop
-                : quoteLayout.previewWidthMobile,
+                : isPhone
+                  ? "60%"
+                  : quoteLayout.previewWidthMobile,
               zIndex: 5,
             }}
           >
             <div
               style={{
                 fontFamily: FONTS.SERIF,
-                fontSize: quoteLayout.previewFontSize,
-                lineHeight: quoteLayout.previewLineHeight,
+                fontSize: isPhone ? "clamp(14px, 4vw, 17px)" : quoteLayout.previewFontSize,
+                lineHeight: isPhone ? 1.12 : quoteLayout.previewLineHeight,
                 fontStyle: "italic",
                 color: PALETTE.ASH,
                 letterSpacing: "-0.01em",
@@ -351,17 +363,17 @@ function Sheet({
           <div
             style={{
               position: "absolute",
-              top: isDesktop ? "59%" : "66%",
-              right: 24,
-              width: "42%",
+              top: isDesktop ? "59%" : isPhone ? "55%" : "66%",
+              right: isPhone ? 20 : 24,
+              width: isPhone ? "46%" : "42%",
               zIndex: 5,
             }}
           >
             <div
               style={{
                 fontFamily: FONTS.MONO,
-                fontSize: "clamp(7px, 2.25vw, 10px)",
-                lineHeight: 1.8,
+                fontSize: isPhone ? "clamp(6.3px, 1.85vw, 8px)" : "clamp(7px, 2.25vw, 10px)",
+                lineHeight: isPhone ? 1.55 : 1.8,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
                 color: PALETTE.ASH,
@@ -432,9 +444,13 @@ function Sheet({
             disabled={!!busyAction}
           />
           <ShareAction
-            label={busyAction === "copy-link" ? "Copying..." : "Copy Link"}
-            sub={SITE.domain}
-            onClick={handleCopyLink}
+            label={
+              isPhone
+                ? busyAction === "ledger" ? "Opening..." : "Ledger"
+                : busyAction === "copy-link" ? "Copying..." : "Copy Link"
+            }
+            sub={isPhone ? "View Record" : SITE.domain}
+            onClick={isPhone ? handleLedger : handleCopyLink}
             disabled={!!busyAction}
           />
         </div>

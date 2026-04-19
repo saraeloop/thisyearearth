@@ -8,7 +8,7 @@ import {
   INTERACTIVE_CARD_IDS,
   TOTAL_CARDS,
 } from "@/constants/cards";
-import { getStoryBgVars } from "@/constants/storyBg";
+import { getPhoneStoryBgVars, getStoryBgVars } from "@/constants/storyBg";
 import { SITE } from "@/config/site";
 import type { CardId, Location, Pledge, Tweaks } from "@/types";
 import { SwipeContainer } from "@/components/ui/SwipeContainer";
@@ -112,7 +112,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   const isInteractive = INTERACTIVE_CARD_IDS.has(cardId);
 
   useLayoutEffect(() => {
-    const vars = getStoryBgVars(cardId);
+    const vars = isPhone ? getPhoneStoryBgVars(cardId) : getStoryBgVars(cardId);
     const html = document.documentElement;
     const body = document.body;
     const themeMeta = document.querySelector<HTMLMetaElement>(

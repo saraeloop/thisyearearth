@@ -30,3 +30,16 @@ export function getStoryBgVars(cardId: CardId): StoryBgVars {
       : DEFAULT_OVERLAY_TINT,
   };
 }
+
+export function getPhoneStoryBgVars(cardId: CardId): StoryBgVars {
+  const vars = getStoryBgVars(cardId);
+  if (cardId !== "renewables") return vars;
+
+  return {
+    ...vars,
+    "--ew-story-bg-top": PALETTE.BG_TOP,
+    "--ew-story-bg-mid": PALETTE.BG_MID,
+    "--ew-story-bg-bottom": PALETTE.BG_BOTTOM,
+    "--ew-story-overlay-tint": DEFAULT_OVERLAY_TINT,
+  };
+}
