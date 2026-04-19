@@ -9,6 +9,7 @@ import {
 } from "framer-motion";
 import { CARD_IDS } from "@/constants/cards";
 import { ACCENTS } from "@/constants/colors";
+import { getStoryBgVars } from "@/constants/storyBg";
 import type { CardId, Location, Pledge, Tweaks } from "@/types";
 import { ShareSheet } from "@/components/ui/ShareSheet";
 import { CustomCursor } from "@/components/ui/CustomCursor";
@@ -77,6 +78,7 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
   }, [scrollYProgress]);
 
   const cursorAccent = ACCENTS[CARD_IDS[activeIdx]];
+  const storyBgVars = getStoryBgVars(CARD_IDS[activeIdx]);
 
   const scrollToIndex = useCallback(
     (idx: number, immediate = false) => {
@@ -133,7 +135,12 @@ export function DesktopStory({ tweaks }: DesktopStoryProps) {
 
       <motion.div
         className="ew-desktop-stage"
-        style={{ ["--ew-story-accent-glow" as string]: accentGlow } as CSSProperties}
+        style={
+          {
+            ...storyBgVars,
+            ["--ew-story-accent-glow" as string]: accentGlow,
+          } as CSSProperties
+        }
       >
         <AnimatePresence initial={false} mode="sync">
           {renderCard(activeIdx, {
