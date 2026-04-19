@@ -24,37 +24,10 @@ type Point = {
   id: string;
   lat: number;
   lng: number;
+  radius: number;
+  altitude: number;
+  color: string;
 };
-
-function createPointElement() {
-  const el = document.createElement("div");
-  const burst = document.createElement("div");
-  const dot = document.createElement("div");
-
-  el.style.width = "14px";
-  el.style.height = "14px";
-  el.style.borderRadius = "50%";
-  el.style.display = "flex";
-  el.style.alignItems = "center";
-  el.style.justifyContent = "center";
-  el.style.pointerEvents = "none";
-
-  burst.style.width = "14px";
-  burst.style.height = "14px";
-  burst.style.borderRadius = "50%";
-  burst.style.display = "flex";
-  burst.style.alignItems = "center";
-  burst.style.justifyContent = "center";
-
-  dot.style.width = "5px";
-  dot.style.height = "5px";
-  dot.style.borderRadius = "50%";
-  dot.style.background = "#F6EFDE";
-  burst.appendChild(dot);
-  el.appendChild(burst);
-
-  return el;
-}
 
 export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
@@ -122,8 +95,11 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
         id: `${l.countryCode}-${l.lat.toFixed(4)}-${l.lon.toFixed(4)}-${i}`,
         lat: l.lat,
         lng: l.lon,
+        radius: i === 0 ? 0.28 : 0.2,
+        altitude: i === 0 ? 0.018 : 0.012,
+        color: i === 0 ? accent.hex : "#F6EFDE",
       }));
-  }, [locations]);
+  }, [locations, accent.hex]);
 
   const boxStyle: CSSProperties = isDesktop
     ? {
@@ -193,12 +169,14 @@ export function FinalGlobe({ accent, locations }: FinalGlobeProps) {
             showGlobe
             globeImageUrl={EARTH_IMAGE_URL}
             bumpImageUrl={EARTH_BUMP_URL}
-            htmlElementsData={points}
-            htmlLat="lat"
-            htmlLng="lng"
-            htmlAltitude={0.01}
-            htmlElement={() => createPointElement()}
-            htmlTransitionDuration={0}
+            pointsData={points}
+            pointLat="lat"
+            pointLng="lng"
+            pointAltitude="altitude"
+            pointRadius="radius"
+            pointColor="color"
+            pointResolution={10}
+            pointsMerge
             enablePointerInteraction
             animateIn={false}
             onGlobeReady={() => setReady(true)}
