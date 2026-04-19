@@ -12,9 +12,9 @@ export const SITE = {
 
 const title = `${SITE.name} · ${SITE.edition}`;
 const previewImage = {
-  url: "/earthwrapped.png",
-  width: 1536,
-  height: 1024,
+  url: "/earthwrapped.jpg",
+  width: 1200,
+  height: 630,
   alt: `${SITE.name} · ${SITE.edition}`,
 };
 
