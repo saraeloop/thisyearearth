@@ -8,6 +8,7 @@ export function CardBackground({ grainLevel = 1 }: CardBackgroundProps) {
   return (
     <>
       <div
+        className="ew-card-background-scene"
         style={{
           position: "absolute",
           inset: 0,
@@ -17,6 +18,7 @@ export function CardBackground({ grainLevel = 1 }: CardBackgroundProps) {
         }}
       />
       <div
+        className="ew-card-background-glow"
         style={{
           position: "absolute",
           bottom: -260,

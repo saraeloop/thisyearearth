@@ -584,6 +584,16 @@ body.ew-story-locked {
   overscroll-behavior: none;
 }
 
+.ew-story-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--ew-story-bg-bottom);
+  background-image: var(--ew-story-atmosphere-image);
+}
+
 .ew-stage-bg {
   position: relative;
   width: 100%;
@@ -639,6 +649,7 @@ body.ew-story-locked {
   html.ew-story-locked,
   body.ew-story-locked,
   .ew-stage,
+  .ew-story-atmosphere,
   .ew-stage-bg,
   .ew-card-frame {
     --ew-story-atmosphere-image:
@@ -670,8 +681,14 @@ body.ew-story-locked {
     background-size: 100% 100%;
   }
 
-  .ew-card-frame::before,
-  .ew-card-frame::after {
+  .ew-stage-bg,
+  .ew-card-frame {
+    background-color: transparent;
+    background-image: none;
+  }
+
+  .ew-story-atmosphere::before,
+  .ew-story-atmosphere::after {
     content: "";
     position: absolute;
     left: 0;
@@ -680,7 +697,7 @@ body.ew-story-locked {
     pointer-events: none;
   }
 
-  .ew-card-frame::before {
+  .ew-story-atmosphere::before {
     top: 0;
     height: 124px;
     background:
@@ -688,12 +705,63 @@ body.ew-story-locked {
       linear-gradient(180deg, rgba(5, 7, 13, 0.42), transparent);
   }
 
-  .ew-card-frame::after {
+  .ew-story-atmosphere::after {
     bottom: 0;
     height: calc(var(--ew-story-bottom-safe) + 168px);
     background:
       radial-gradient(ellipse 150% 72% at 50% 100%, var(--ew-story-accent-glow), transparent 64%),
       linear-gradient(180deg, transparent 0%, rgba(5, 7, 13, 0.7) 58%, rgba(5, 7, 13, 0.98) 100%);
+  }
+
+  .ew-card-meta,
+  .ew-card-meta span,
+  .ew-card-chapter,
+  .ew-stat-overline,
+  .ew-stat-unit,
+  .ew-stat-label,
+  .ew-stat-ladder,
+  .ew-stat-ladder *,
+  .ew-stat-sources,
+  .ew-stat-sources *,
+  .ew-earth-quote,
+  .ew-earth-quote span,
+  .ew-card-next,
+  .ew-card-next span,
+  .ew-share-button {
+    text-shadow:
+      0 1px 10px rgba(5, 7, 13, 0.78),
+      0 0 18px rgba(246, 239, 222, 0.12);
+  }
+
+  .ew-card-meta {
+    color: rgba(246, 239, 222, 0.64) !important;
+  }
+
+  .ew-card-meta span:first-child {
+    color: rgba(246, 239, 222, 0.78) !important;
+  }
+
+  .ew-card-counter,
+  .ew-card-chapter,
+  .ew-stat-overline,
+  .ew-stat-unit {
+    color: rgba(246, 239, 222, 0.62) !important;
+  }
+
+  .ew-stat-label,
+  .ew-card-next,
+  .ew-share-button {
+    color: rgba(246, 239, 222, 0.78) !important;
+  }
+
+  .ew-earth-quote {
+    text-shadow:
+      0 2px 12px rgba(5, 7, 13, 0.82),
+      0 0 22px rgba(246, 239, 222, 0.16);
+  }
+
+  .ew-earth-quote span {
+    color: rgba(246, 239, 222, 0.52) !important;
   }
 }
 

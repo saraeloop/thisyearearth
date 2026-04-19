@@ -136,6 +136,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
 
   return (
     <SwipeContainer onNext={next} onPrev={prev} className="ew-stage">
+      <div className="ew-story-atmosphere" aria-hidden="true" />
       <div className="ew-stage-bg">
         {!isInteractive && (
           <div className="ew-tap-zones">
