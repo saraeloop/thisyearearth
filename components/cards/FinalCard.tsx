@@ -157,7 +157,9 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          bottom: 168,
+          bottom: isDesktop
+            ? 168
+            : 'calc(env(safe-area-inset-bottom, 0px) + 168px)',
           left: 0,
           right: 0,
           zIndex: 15,
@@ -208,7 +210,9 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          bottom: 56,
+          bottom: isDesktop
+            ? 56
+            : 'calc(env(safe-area-inset-bottom, 0px) + 56px)',
           left: 32,
           right: 32,
           zIndex: 15,

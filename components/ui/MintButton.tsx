@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { PALETTE, FONTS } from "@/constants/colors";
+import { useMediaMin } from "@/hooks/useBreakpoint";
 import type { Accent } from "@/types";
 
 type MintButtonProps = {
@@ -12,6 +13,7 @@ type MintButtonProps = {
 };
 
 export function MintButton({ accent, disabled, minting, onClick }: MintButtonProps) {
+  const isDesktop = useMediaMin(1024);
   const active = !disabled && !minting;
   return (
     <motion.button
@@ -28,13 +30,13 @@ export function MintButton({ accent, disabled, minting, onClick }: MintButtonPro
         display: "block",
         width: "100%",
         boxSizing: "border-box",
-        padding: "16px",
+        padding: isDesktop ? "16px" : "12px 14px",
         borderRadius: 12,
         background: active ? `${accent.hex}40` : "rgba(230,214,190,0.04)",
         border: `1px solid ${active ? accent.hex : "rgba(230,214,190,0.14)"}`,
         fontFamily: FONTS.MONO,
-        fontSize: 11,
-        letterSpacing: "0.28em",
+        fontSize: isDesktop ? 11 : 10,
+        letterSpacing: isDesktop ? "0.28em" : "0.22em",
         textTransform: "uppercase",
         color: active ? PALETTE.ASH : PALETTE.ASH_DIMMER,
         fontWeight: 500,

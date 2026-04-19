@@ -108,9 +108,11 @@ export function PledgeCard({
           <div
             style={{
               position: "absolute",
-              top: 180,
-              left: 32,
-              right: 32,
+              top: isDesktop
+                ? 180
+                : "calc(env(safe-area-inset-top, 0px) + clamp(96px, 16dvh, 132px))",
+              left: isDesktop ? 32 : 24,
+              right: isDesktop ? 32 : 24,
               textAlign: "center",
               zIndex: 10,
             }}
@@ -118,11 +120,11 @@ export function PledgeCard({
             <div
               style={{
                 fontFamily: FONTS.MONO,
-                fontSize: 10,
-                letterSpacing: "0.3em",
+                fontSize: isDesktop ? 10 : 9.5,
+                letterSpacing: isDesktop ? "0.3em" : "0.26em",
                 textTransform: "uppercase",
                 color: PALETTE.ASH_DIM,
-                marginBottom: 16,
+                marginBottom: isDesktop ? 16 : 12,
               }}
             >
               Earth requests
@@ -130,7 +132,7 @@ export function PledgeCard({
             <div
               style={{
                 fontFamily: FONTS.SERIF,
-                fontSize: 34,
+                fontSize: isDesktop ? 34 : 31,
                 lineHeight: 1.1,
                 fontStyle: "italic",
                 color: PALETTE.ASH,
@@ -147,7 +149,9 @@ export function PledgeCard({
           <div
             style={{
               position: "absolute",
-              top: 340,
+              top: isDesktop
+                ? 340
+                : "calc(env(safe-area-inset-top, 0px) + clamp(196px, 31dvh, 260px))",
               left: isDesktop ? "50%" : 24,
               right: isDesktop ? "auto" : 24,
               width: isDesktop ? "min(560px, calc(100vw - 96px))" : "auto",
@@ -157,7 +161,14 @@ export function PledgeCard({
           >
             {!writing && (
               <>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div
+                  style={{
+                    display: isDesktop ? "flex" : "grid",
+                    flexDirection: "column",
+                    gridTemplateColumns: isDesktop ? undefined : "1fr 1fr",
+                    gap: isDesktop ? 8 : 7,
+                  }}
+                >
                   {PRESETS.map((p) => (
                     <button
                       key={p.id}
@@ -169,16 +180,17 @@ export function PledgeCard({
                         all: "unset",
                         cursor: "pointer",
                         textAlign: "center",
-                        padding: "13px 16px",
-                        borderRadius: 12,
+                        padding: isDesktop ? "13px 16px" : "10px 8px",
+                        borderRadius: isDesktop ? 12 : 10,
                         background:
                           choice === p.id
                             ? `${accent.hex}22`
                             : "rgba(230,214,190,0.04)",
                         border: `1px solid ${choice === p.id ? accent.hex : "rgba(230,214,190,0.14)"}`,
                         fontFamily: FONTS.MONO,
-                        fontSize: 11.5,
-                        letterSpacing: "0.14em",
+                        fontSize: isDesktop ? 11.5 : 9.2,
+                        lineHeight: 1.25,
+                        letterSpacing: isDesktop ? "0.14em" : "0.1em",
                         textTransform: "uppercase",
                         color: choice === p.id ? PALETTE.ASH : PALETTE.ASH_DIM,
                         fontWeight: 500,
@@ -203,12 +215,12 @@ export function PledgeCard({
                     width: "100%",
                     boxSizing: "border-box",
                     marginTop: 8,
-                    padding: "13px 16px",
-                    borderRadius: 12,
+                    padding: isDesktop ? "13px 16px" : "10px 12px",
+                    borderRadius: isDesktop ? 12 : 10,
                     border: "1px dashed rgba(230,214,190,0.2)",
                     fontFamily: FONTS.MONO,
-                    fontSize: 11.5,
-                    letterSpacing: "0.14em",
+                    fontSize: isDesktop ? 11.5 : 9.6,
+                    letterSpacing: isDesktop ? "0.14em" : "0.12em",
                     textTransform: "uppercase",
                     color: PALETTE.ASH_DIMMER,
                     fontWeight: 500,
@@ -231,14 +243,14 @@ export function PledgeCard({
                   style={{
                     width: "100%",
                     boxSizing: "border-box",
-                    height: 34,
+                    height: isDesktop ? 34 : 30,
                     padding: "0 0 3px",
                     borderRadius: 0,
                     background: "transparent",
                     border: 0,
                     borderBottom: `1px solid ${PALETTE.ASH_DIM}`,
                     fontFamily: FONTS.SERIF,
-                    fontSize: 22,
+                    fontSize: isDesktop ? 22 : 20,
                     lineHeight: 1,
                     color: PALETTE.ASH,
                     outline: "none",
@@ -250,8 +262,8 @@ export function PledgeCard({
                     marginTop: 6,
                     textAlign: "right",
                     fontFamily: FONTS.MONO,
-                    fontSize: 9,
-                    letterSpacing: "0.2em",
+                    fontSize: isDesktop ? 9 : 8,
+                    letterSpacing: isDesktop ? "0.2em" : "0.18em",
                     color: PALETTE.ASH_DIMMER,
                   }}
                 >
@@ -261,8 +273,8 @@ export function PledgeCard({
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: 10,
-                    marginTop: 16,
+                    gap: isDesktop ? 10 : 8,
+                    marginTop: isDesktop ? 16 : 12,
                     padding: "0 4px",
                   }}
                 >
@@ -272,7 +284,7 @@ export function PledgeCard({
                       alignItems: "baseline",
                       gap: 10,
                       fontFamily: FONTS.SERIF,
-                      fontSize: 18,
+                      fontSize: isDesktop ? 18 : 16,
                       fontStyle: "italic",
                       color: PALETTE.ASH,
                     }}
@@ -291,7 +303,7 @@ export function PledgeCard({
                         padding: "0 0 4px",
                         borderBottom: "1px solid rgba(230,214,190,0.45)",
                         fontFamily: FONTS.SERIF,
-                        fontSize: 19,
+                        fontSize: isDesktop ? 19 : 17,
                         lineHeight: 1.2,
                         fontStyle: "italic",
                         color: PALETTE.ASH,
@@ -304,7 +316,7 @@ export function PledgeCard({
                       alignItems: "baseline",
                       gap: 10,
                       fontFamily: FONTS.SERIF,
-                      fontSize: 16,
+                      fontSize: isDesktop ? 16 : 15,
                       fontStyle: "italic",
                       color: PALETTE.ASH_DIM,
                     }}
@@ -323,7 +335,7 @@ export function PledgeCard({
                         padding: "0 0 4px",
                         borderBottom: "1px solid rgba(230,214,190,0.32)",
                         fontFamily: FONTS.SERIF,
-                        fontSize: 17,
+                        fontSize: isDesktop ? 17 : 16,
                         lineHeight: 1.2,
                         fontStyle: "italic",
                         color: PALETTE.ASH,
@@ -342,11 +354,11 @@ export function PledgeCard({
                     cursor: "pointer",
                     textAlign: "center",
                     display: "block",
-                    margin: "8px auto 0",
-                    padding: "6px 12px",
+                    margin: isDesktop ? "8px auto 0" : "6px auto 0",
+                    padding: isDesktop ? "6px 12px" : "5px 10px",
                     fontFamily: FONTS.MONO,
-                    fontSize: 9,
-                    letterSpacing: "0.22em",
+                    fontSize: isDesktop ? 9 : 8,
+                    letterSpacing: isDesktop ? "0.22em" : "0.18em",
                     textTransform: "uppercase",
                     color: PALETTE.ASH_DIMMER,
                   }}
@@ -360,9 +372,11 @@ export function PledgeCard({
           <div
             style={{
               position: "absolute",
-              bottom: 80,
-              left: isDesktop ? "50%" : 32,
-              right: isDesktop ? "auto" : 32,
+              bottom: isDesktop
+                ? 80
+                : "calc(env(safe-area-inset-bottom, 0px) + 34px)",
+              left: isDesktop ? "50%" : 24,
+              right: isDesktop ? "auto" : 24,
               width: isDesktop ? "min(560px, calc(100vw - 96px))" : "auto",
               transform: isDesktop ? "translateX(-50%)" : undefined,
               zIndex: 15,
@@ -387,12 +401,12 @@ export function PledgeCard({
                 display: "block",
                 width: "100%",
                 boxSizing: "border-box",
-                marginTop: 8,
-                padding: "10px 12px",
+                marginTop: isDesktop ? 8 : 6,
+                padding: isDesktop ? "10px 12px" : "8px 10px",
                 textAlign: "center",
                 fontFamily: FONTS.MONO,
-                fontSize: 10.5,
-                letterSpacing: "0.22em",
+                fontSize: isDesktop ? 10.5 : 9.2,
+                letterSpacing: isDesktop ? "0.22em" : "0.18em",
                 textTransform: "uppercase",
                 color: minting ? PALETTE.ASH_DIMMER : PALETTE.ASH_DIM,
                 fontWeight: 600,
@@ -404,11 +418,11 @@ export function PledgeCard({
             </button>
             <div
               style={{
-                marginTop: 6,
+                marginTop: isDesktop ? 6 : 4,
                 textAlign: "center",
                 fontFamily: FONTS.MONO,
-                fontSize: 8,
-                letterSpacing: "0.24em",
+                fontSize: isDesktop ? 8 : 7.2,
+                letterSpacing: isDesktop ? "0.24em" : "0.18em",
                 textTransform: "uppercase",
                 color: PALETTE.ASH_DIMMER,
               }}

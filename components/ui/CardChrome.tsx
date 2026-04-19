@@ -24,7 +24,7 @@ export function CardChrome({
       <div
         style={{
           position: "absolute",
-          bottom: 28,
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 28px)",
           left: 0,
           right: 0,
           zIndex: 25,
@@ -114,7 +114,7 @@ export function CardChrome({
       <div
         style={{
           position: "absolute",
-          bottom: 8,
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
           left: 0,
           right: 0,
           zIndex: 25,
