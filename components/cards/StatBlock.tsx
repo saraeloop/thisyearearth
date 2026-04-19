@@ -18,11 +18,11 @@ type StatBlockProps = {
 type StatLadderProps = {
   accent: Accent;
   rows: Array<{ left: string; right: string; active?: boolean; warn?: boolean }>;
-  top?: number;
+  top?: CSSProperties["top"];
 };
 
 type StatSourceMetaProps = {
-  top?: number;
+  top?: CSSProperties["top"];
   rows: string[];
   dim?: string[];
 };
@@ -63,7 +63,7 @@ export function StatBlock({
         style={{
           position: "relative",
           textAlign: "center",
-          transform: `translateY(${translateY}px)`,
+          transform: `translateY(var(--ew-story-stat-shift, ${translateY}px))`,
         }}
       >
         <div style={halo} />
@@ -88,7 +88,8 @@ export function StatBlock({
             "--ew-stat-desktop-size": desktopFontSize ?? `${fontSize}px`,
             fontFamily: FONTS.SERIF,
             fontWeight: 400,
-            fontSize: "var(--ew-stat-mobile-size)",
+            fontSize:
+              "min(var(--ew-stat-mobile-size), var(--ew-story-stat-max-font, var(--ew-stat-mobile-size)))",
             lineHeight: 0.82,
             letterSpacing: "-0.05em",
             color: PALETTE.ASH,
@@ -116,7 +117,11 @@ export function StatBlock({
   );
 }
 
-export function StatLadder({ accent, rows, top = 258 }: StatLadderProps) {
+export function StatLadder({
+  accent,
+  rows,
+  top = "var(--ew-story-stat-meta-top, 258px)",
+}: StatLadderProps) {
   return (
     <div
       className="ew-stat-ladder"
@@ -153,7 +158,11 @@ export function StatLadder({ accent, rows, top = 258 }: StatLadderProps) {
   );
 }
 
-export function StatSourceMeta({ top = 258, rows, dim = [] }: StatSourceMetaProps) {
+export function StatSourceMeta({
+  top = "var(--ew-story-stat-meta-top, 258px)",
+  rows,
+  dim = [],
+}: StatSourceMetaProps) {
   return (
     <div
       className="ew-stat-sources"

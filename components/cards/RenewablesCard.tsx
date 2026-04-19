@@ -96,7 +96,6 @@ export function RenewablesCard({
 
       <StatLadder
         accent={accent}
-        top={260}
         rows={[
           { left: '— SOLAR', right: '· +42%' },
           { left: '— WIND', right: '· +18%' },
@@ -106,7 +105,6 @@ export function RenewablesCard({
         ]}
       />
       <StatSourceMeta
-        top={260}
         rows={['SRC: IEA', 'SRC: IRENA']}
         dim={['CAPACITY ADDED', 'YOY · GW']}
       />
