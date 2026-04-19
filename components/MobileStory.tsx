@@ -27,15 +27,30 @@ import { RenewablesCard } from "@/components/cards/RenewablesCard";
 import { FinalCard } from "@/components/cards/FinalCard";
 
 type MobileStoryProps = { tweaks: Tweaks };
-type StoryViewportStyle = CSSProperties & Record<"--ew-story-viewport-height", string>;
+type StoryViewportVar =
+  | "--ew-story-viewport-height"
+  | "--ew-story-viewport-width"
+  | "--ew-story-bottom-reserve";
+type StoryViewportStyle = CSSProperties & Record<StoryViewportVar, string>;
 
 const DEFAULT_STORY_VIEWPORT_STYLE: StoryViewportStyle = {
   "--ew-story-viewport-height": "100svh",
+  "--ew-story-viewport-width": "100%",
+  "--ew-story-bottom-reserve": "0px",
 };
 
 function clampIndex(n: number): number {
   if (!Number.isFinite(n)) return 0;
   return Math.min(Math.max(Math.trunc(n), 0), TOTAL_CARDS - 1);
+}
+
+function isIOSWebKit(): boolean {
+  const platform = window.navigator.platform;
+  const maxTouchPoints = window.navigator.maxTouchPoints;
+  return (
+    /iP(hone|od|ad)/.test(platform) ||
+    (platform === "MacIntel" && maxTouchPoints > 1)
+  );
 }
 
 export function MobileStory({ tweaks }: MobileStoryProps) {
@@ -49,39 +64,77 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   );
 
   useEffect(() => {
+    document.documentElement.classList.add("ew-story-locked");
+    document.body.classList.add("ew-story-locked");
+
+    return () => {
+      document.documentElement.classList.remove("ew-story-locked");
+      document.body.classList.remove("ew-story-locked");
+    };
+  }, []);
+
+  useEffect(() => {
+    const isIOS = isIOSWebKit();
     let frame = 0;
 
-    const updateViewportHeight = () => {
+    const updateViewport = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        const height = Math.round(
-          window.visualViewport?.height ?? window.innerHeight,
-        );
-        if (!Number.isFinite(height) || height <= 0) return;
+        const visualViewport = window.visualViewport;
+        const height = Math.round(visualViewport?.height ?? window.innerHeight);
+        const width = Math.round(visualViewport?.width ?? window.innerWidth);
+        if (
+          !Number.isFinite(height) ||
+          !Number.isFinite(width) ||
+          height <= 0 ||
+          width <= 0
+        ) {
+          return;
+        }
+
+        const bottomOcclusion = visualViewport
+          ? Math.max(
+              0,
+              Math.round(
+                window.innerHeight -
+                  visualViewport.height -
+                  visualViewport.offsetTop,
+              ),
+            )
+          : 0;
+        const safariToolbarReserve =
+          isIOS && width < 768 ? Math.max(bottomOcclusion, 92) : bottomOcclusion;
 
         const nextStyle: StoryViewportStyle = {
           "--ew-story-viewport-height": `${height}px`,
+          "--ew-story-viewport-width": `${width}px`,
+          "--ew-story-bottom-reserve": `${safariToolbarReserve}px`,
         };
         setViewportStyle((current) =>
-          current["--ew-story-viewport-height"] === nextStyle["--ew-story-viewport-height"]
+          current["--ew-story-viewport-height"] ===
+            nextStyle["--ew-story-viewport-height"] &&
+          current["--ew-story-viewport-width"] ===
+            nextStyle["--ew-story-viewport-width"] &&
+          current["--ew-story-bottom-reserve"] ===
+            nextStyle["--ew-story-bottom-reserve"]
             ? current
             : nextStyle,
         );
       });
     };
 
-    updateViewportHeight();
-    window.visualViewport?.addEventListener("resize", updateViewportHeight);
-    window.visualViewport?.addEventListener("scroll", updateViewportHeight);
-    window.addEventListener("resize", updateViewportHeight);
-    window.addEventListener("orientationchange", updateViewportHeight);
+    updateViewport();
+    window.visualViewport?.addEventListener("resize", updateViewport);
+    window.visualViewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+    window.addEventListener("orientationchange", updateViewport);
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.visualViewport?.removeEventListener("resize", updateViewportHeight);
-      window.visualViewport?.removeEventListener("scroll", updateViewportHeight);
-      window.removeEventListener("resize", updateViewportHeight);
-      window.removeEventListener("orientationchange", updateViewportHeight);
+      window.visualViewport?.removeEventListener("resize", updateViewport);
+      window.visualViewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
     };
   }, []);
 
