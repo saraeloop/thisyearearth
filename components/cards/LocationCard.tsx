@@ -60,6 +60,7 @@ export function LocationCard({
       onNext={onNext}
       onShare={onShare}
       clickable={false}
+      hideNext={!!detected}
       nextLabel={detected ? 'Next' : 'Skip'}
     >
       <Globe accent={accent} active={!!detected} />
@@ -177,7 +178,7 @@ export function LocationCard({
       <div
         style={{
           position: 'absolute',
-          bottom: 110,
+          bottom: isDesktop ? 110 : 'var(--ew-story-location-actions-bottom, 110px)',
           left: isDesktop ? '50%' : 32,
           right: isDesktop ? 'auto' : 32,
           width: isDesktop ? 'min(480px, calc(100vw - 96px))' : 'auto',

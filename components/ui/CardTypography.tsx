@@ -7,24 +7,24 @@ import type { Accent } from '@/types';
 
 type EarthQuoteProps = {
   children: ReactNode;
-  bottom?: number;
+  bottom?: CSSProperties['bottom'];
   left?: number;
   right?: number;
 };
 
 type StatLabelProps = {
   children: ReactNode;
-  bottom?: number;
+  bottom?: CSSProperties['bottom'];
 };
 
 type HorizonLineProps = {
   accent: Accent;
-  bottom?: number;
+  bottom?: CSSProperties['bottom'];
 };
 
 export function EarthQuote({
   children,
-  bottom = 90,
+  bottom = 'var(--ew-story-quote-bottom, 90px)',
   left = 32,
   right = 32,
 }: EarthQuoteProps) {
@@ -71,7 +71,10 @@ export function EarthQuote({
   );
 }
 
-export function StatLabel({ children, bottom = 180 }: StatLabelProps) {
+export function StatLabel({
+  children,
+  bottom = 'var(--ew-story-stat-label-bottom, 180px)',
+}: StatLabelProps) {
   return (
     <div
       style={{
@@ -94,7 +97,10 @@ export function StatLabel({ children, bottom = 180 }: StatLabelProps) {
   );
 }
 
-export function HorizonLine({ accent, bottom = 158 }: HorizonLineProps) {
+export function HorizonLine({
+  accent,
+  bottom = 'var(--ew-story-horizon-bottom, 158px)',
+}: HorizonLineProps) {
   return (
     <div
       style={{

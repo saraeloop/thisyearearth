@@ -511,28 +511,40 @@ body.ew-story-locked {
 }
 
 body.ew-story-locked {
-  position: fixed;
-  inset: 0;
   width: 100%;
+  min-height: 100%;
   overflow: hidden;
   background: #0a0e1a;
 }
 
 .ew-stage {
-  --ew-story-viewport-height: 100svh;
-  --ew-story-viewport-width: 100%;
-  --ew-story-bottom-reserve: 0px;
   --ew-story-top-safe: max(env(safe-area-inset-top, 0px), 24px);
-  --ew-story-bottom-safe: max(
-    env(safe-area-inset-bottom, 0px),
-    var(--ew-story-bottom-reserve)
+  --ew-story-bottom-safe: env(safe-area-inset-bottom, 0px);
+  --ew-story-meta-top: calc(var(--ew-story-top-safe) + 28px);
+  --ew-story-chapter-top: calc(var(--ew-story-top-safe) + 66px);
+  --ew-story-nav-bottom: calc(var(--ew-story-bottom-safe) + 18px);
+  --ew-story-footer-bottom: calc(var(--ew-story-bottom-safe) + 4px);
+  --ew-story-quote-bottom: calc(var(--ew-story-nav-bottom) + 58px);
+  --ew-story-stat-label-bottom: 180px;
+  --ew-story-horizon-bottom: 158px;
+  --ew-story-location-actions-bottom: calc(var(--ew-story-nav-bottom) + 58px);
+  --ew-story-pledge-title-top: calc(
+    var(--ew-story-top-safe) + clamp(68px, 12svh, 104px)
   );
+  --ew-story-pledge-form-top: calc(
+    var(--ew-story-top-safe) + clamp(166px, 27svh, 224px)
+  );
+  --ew-story-action-bottom: calc(var(--ew-story-bottom-safe) + 24px);
+  --ew-story-final-count-bottom: calc(var(--ew-story-bottom-safe) + 168px);
+  --ew-story-final-signoff-bottom: calc(var(--ew-story-bottom-safe) + 56px);
   position: fixed;
   inset: 0;
-  width: var(--ew-story-viewport-width);
+  width: 100vw;
   max-width: 100%;
-  height: var(--ew-story-viewport-height);
-  min-height: 0;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 100svh;
   overflow: hidden;
   background: #0a0e1a;
   overscroll-behavior: none;

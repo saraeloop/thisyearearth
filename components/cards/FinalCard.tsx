@@ -157,9 +157,7 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          bottom: isDesktop
-            ? 168
-            : 'calc(var(--ew-story-bottom-safe, 0px) + 168px)',
+          bottom: isDesktop ? 168 : 'var(--ew-story-final-count-bottom, 168px)',
           left: 0,
           right: 0,
           zIndex: 15,
@@ -210,9 +208,7 @@ export function FinalCard({
       <div
         style={{
           position: 'absolute',
-          bottom: isDesktop
-            ? 56
-            : 'calc(var(--ew-story-bottom-safe, 0px) + 56px)',
+          bottom: isDesktop ? 56 : 'var(--ew-story-final-signoff-bottom, 56px)',
           left: 32,
           right: 32,
           zIndex: 15,
