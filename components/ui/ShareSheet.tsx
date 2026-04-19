@@ -107,6 +107,7 @@ function Sheet({
   const isDesktop = useMediaMin(1024);
   const isPhone = useMediaMax(767);
   const footerPledgeText = getFooterPledgeText(pledge);
+  const xShareText = getXShareText(pledge, pledgeLines);
 
   const runAction = async (
     action: ShareActionKind,
@@ -156,12 +157,29 @@ function Sheet({
     });
 
   const handleXPost = () =>
-    runAction("x", () => {
-      const intentUrl = new URL("https://x.com/compose/post");
-      intentUrl.searchParams.set("text", `${SHARE_TEXT} ${SHARE_URL}`);
-      const opened = window.open(intentUrl.toString(), "_blank", "noopener,noreferrer");
-      if (!opened) window.location.href = intentUrl.toString();
-      return "Opening X.";
+    runAction("x", async () => {
+      const blob = await createPosterBlob();
+      const file = new File([blob], POSTER_FILENAME, { type: "image/png" });
+
+      if (!isDesktop && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: SITE.name,
+          text: xShareText,
+          url: SHARE_URL,
+        });
+        return "Opened share sheet.";
+      }
+
+      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        openXIntent(xShareText);
+        return "Image copied. Paste it into X.";
+      }
+
+      downloadBlob(blob, POSTER_FILENAME);
+      openXIntent(xShareText);
+      return "Image downloaded. Upload it to X.";
     });
 
   const handleCopyImage = () =>
@@ -492,6 +510,15 @@ function getPledgeLines(pledge?: Pledge | null) {
     return PRESET_PLEDGE_LINES[pledge.choice];
   }
   return PRESET_PLEDGE_LINES.eat;
+}
+
+function getXShareText(pledge: Pledge | null | undefined, pledgeLines: string[]) {
+  const pledgeText =
+    pledge?.custom?.trim() ||
+    (pledge?.choice && PRESET_PLEDGE_LINES[pledge.choice]?.join(" ")) ||
+    pledgeLines.join(" ");
+
+  return `${SHARE_TEXT}\n\n"${pledgeText}"`;
 }
 
 function wrapPledge(text: string) {
@@ -1027,4 +1054,12 @@ function downloadBlob(blob: Blob, filename: string) {
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function openXIntent(text: string) {
+  const intentUrl = new URL("https://twitter.com/intent/tweet");
+  intentUrl.searchParams.set("text", text);
+  intentUrl.searchParams.set("url", SHARE_URL);
+  const opened = window.open(intentUrl.toString(), "_blank", "noopener,noreferrer");
+  if (!opened) window.location.href = intentUrl.toString();
 }
