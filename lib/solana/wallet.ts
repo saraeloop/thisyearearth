@@ -34,7 +34,7 @@ type SolanaWalletProvider = {
   connect: () => Promise<WalletConnectResult>;
   signAndSendTransaction?: (
     transaction: VersionedTransaction,
-  ) => Promise<{ signature: string }>;
+  ) => Promise<{ signature: string | Uint8Array }>;
   signTransaction?: (
     transaction: VersionedTransaction,
   ) => Promise<VersionedTransaction>;
@@ -112,6 +112,10 @@ function encodeBase58(bytes: Uint8Array) {
     result += BASE58_ALPHABET[digits[i]];
   }
   return result;
+}
+
+function normalizeSignature(signature: string | Uint8Array) {
+  return typeof signature === "string" ? signature : encodeBase58(signature);
 }
 
 async function logSolanaError(
@@ -209,7 +213,7 @@ export async function mintPledgeOnDevnet(
   try {
     if (provider.signAndSendTransaction) {
       const result = await provider.signAndSendTransaction(transaction);
-      txHash = result.signature;
+      txHash = normalizeSignature(result.signature);
     } else if (provider.signTransaction) {
       const signed = await provider.signTransaction(transaction);
       try {

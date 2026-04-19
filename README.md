@@ -108,6 +108,12 @@ Other climate figures are presented as editorial chapter data inside the experie
 - [ ] Centralize background ownership for base color, atmosphere, grain, glow, and per-card overrides.
 - [ ] Add visual regression checks for desktop slide 10, final desktop chrome, iPhone Safari story shell, and the mobile share sheet.
 
+## Special thanks
+
+Special thanks to the scientists and researchers who maintain these datasets year after year — **NOAA GML at Mauna Loa Observatory, NASA GISS, NSIDC, Global Forest Watch, the IUCN Red List, and the IEA**.
+
+---
+
 ## License
 
 MIT License © Sara Loera

@@ -23,6 +23,16 @@ type SessionLocation = {
   lon: number;
 };
 
+async function getApiErrorMessage(res: Response) {
+  try {
+    const data = (await res.json()) as { error?: unknown };
+    if (typeof data.error === "string") return data.error;
+  } catch {
+    // Fall through to the status-only message.
+  }
+  return res.statusText || `HTTP ${res.status}`;
+}
+
 export function usePledgeCount(pollMs = 30_000) {
   const [count, setCount] = useState(0);
 
@@ -122,7 +132,9 @@ export function useMintPledge() {
           mint: mintMetadata,
         }),
       });
-      if (!res.ok) throw new Error(`pledge save failed: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`pledge save failed: ${res.status} ${await getApiErrorMessage(res)}`);
+      }
       const data = (await res.json()) as { pledge: Pledge };
       return data.pledge;
     },
