@@ -37,8 +37,12 @@ export function LocationCard({
   );
 
   const handleDetect = async () => {
-    const loc = await locState.detect();
-    onLocationSet(loc);
+    try {
+      const loc = await locState.detect();
+      onLocationSet(loc);
+    } catch {
+      // The hook exposes a user-facing error and keeps manual picking available.
+    }
   };
 
   const handlePick = (region: string) => {
@@ -230,6 +234,22 @@ export function LocationCard({
             >
               Pick manually
             </button>
+            {locState.error ?
+              <div
+                role="status"
+                style={{
+                  fontFamily: FONTS.MONO,
+                  fontSize: 9,
+                  lineHeight: 1.5,
+                  letterSpacing: '0.16em',
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                  color: PALETTE.ASH_DIM,
+                }}
+              >
+                {locState.error}
+              </div>
+            : null}
           </div>
         )}
 
