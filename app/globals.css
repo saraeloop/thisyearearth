@@ -804,10 +804,10 @@ body.ew-story-locked {
     --ew-story-stat-max-font: 176px;
     --ew-story-location-actions-bottom: calc(var(--ew-story-nav-bottom) + 58px);
     --ew-story-pledge-title-top: calc(
-      var(--ew-story-top-safe) + clamp(64px, 10svh, 92px)
+      var(--ew-story-top-safe) + clamp(88px, 14svh, 116px)
     );
     --ew-story-pledge-form-top: calc(
-      var(--ew-story-top-safe) + clamp(154px, 25svh, 208px)
+      var(--ew-story-top-safe) + clamp(218px, 33svh, 254px)
     );
     --ew-story-action-bottom: calc(var(--ew-story-nav-bottom) + 8px);
     --ew-story-final-count-bottom: calc(var(--ew-story-nav-bottom) + 152px);

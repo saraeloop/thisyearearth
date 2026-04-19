@@ -7,7 +7,7 @@ import { CardShell } from "./CardShell";
 import { MintedReceipt } from "./MintedReceipt";
 import { MintButton } from "@/components/ui/MintButton";
 import { useMintPledge } from "@/hooks/usePledge";
-import { useMediaMin } from "@/hooks/useBreakpoint";
+import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 
 type PledgeCardProps = CardCommonProps & {
@@ -43,6 +43,7 @@ export function PledgeCard({
   const minted = !!userPledge?.minted;
   const { mint, record, minting, error } = useMintPledge();
   const isDesktop = useMediaMin(1024);
+  const isPhone = useMediaMax(767);
 
   const pledgeText = useMemo(() => {
     if (writing) return custom;
@@ -159,10 +160,10 @@ export function PledgeCard({
               <>
                 <div
                   style={{
-                    display: isDesktop ? "flex" : "grid",
+                    display: isDesktop || isPhone ? "flex" : "grid",
                     flexDirection: "column",
-                    gridTemplateColumns: isDesktop ? undefined : "1fr 1fr",
-                    gap: isDesktop ? 8 : 7,
+                    gridTemplateColumns: isDesktop || isPhone ? undefined : "1fr 1fr",
+                    gap: isDesktop ? 8 : isPhone ? 8 : 7,
                   }}
                 >
                   {PRESETS.map((p) => (
@@ -176,7 +177,7 @@ export function PledgeCard({
                         all: "unset",
                         cursor: "pointer",
                         textAlign: "center",
-                        padding: isDesktop ? "13px 16px" : "10px 8px",
+                        padding: isDesktop ? "13px 16px" : isPhone ? "11px 12px" : "10px 8px",
                         borderRadius: isDesktop ? 12 : 10,
                         background:
                           choice === p.id
@@ -184,9 +185,9 @@ export function PledgeCard({
                             : "rgba(230,214,190,0.04)",
                         border: `1px solid ${choice === p.id ? accent.hex : "rgba(230,214,190,0.14)"}`,
                         fontFamily: FONTS.MONO,
-                        fontSize: isDesktop ? 11.5 : 9.2,
+                        fontSize: isDesktop ? 11.5 : isPhone ? 9.8 : 9.2,
                         lineHeight: 1.25,
-                        letterSpacing: isDesktop ? "0.14em" : "0.1em",
+                        letterSpacing: isDesktop ? "0.14em" : isPhone ? "0.14em" : "0.1em",
                         textTransform: "uppercase",
                         color: choice === p.id ? PALETTE.ASH : PALETTE.ASH_DIM,
                         fontWeight: 500,
