@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { ENDPOINTS } from "@/constants/endpoints";
+import { resolveBrowserLocation } from "@/lib/location";
 import type { Location } from "@/types";
 
 type LocationState = {
@@ -12,45 +13,7 @@ type LocationState = {
 
 const SESSION_LOCATION_KEY = "thisyearearth:session-location";
 const SAVED_LOCATION_KEY = "thisyearearth:session-location-saved";
-
-const FAKE_LOCATIONS: Location[] = [
-  {
-    city: "San Francisco",
-    region: "North America",
-    country: "United States",
-    countryCode: "US",
-    lat: 37.77,
-    lon: -122.42,
-    tz: "UTC-08",
-  },
-  {
-    city: "Berlin",
-    region: "Europe",
-    country: "Germany",
-    countryCode: "DE",
-    lat: 52.52,
-    lon: 13.4,
-    tz: "UTC+01",
-  },
-  {
-    city: "Lagos",
-    region: "Africa",
-    country: "Nigeria",
-    countryCode: "NG",
-    lat: 6.52,
-    lon: 3.37,
-    tz: "UTC+01",
-  },
-  {
-    city: "Tokyo",
-    region: "Asia",
-    country: "Japan",
-    countryCode: "JP",
-    lat: 35.68,
-    lon: 139.69,
-    tz: "UTC+09",
-  },
-];
+const GEOLOCATION_TIMEOUT_MS = 12_000;
 
 async function persistLocation(loc: Location) {
   try {
@@ -81,6 +44,15 @@ function storeSessionLocation(loc: Location) {
   window.localStorage.setItem(SESSION_LOCATION_KEY, JSON.stringify(loc));
 }
 
+function isPermissionDenied(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === 1
+  );
+}
+
 export function useLocation(initial: Location | null = null) {
   const [state, setState] = useState<LocationState>({
     loading: false,
@@ -90,12 +62,34 @@ export function useLocation(initial: Location | null = null) {
 
   const detect = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
-    await new Promise((r) => setTimeout(r, 1200));
-    const pick = FAKE_LOCATIONS[Math.floor(Math.random() * FAKE_LOCATIONS.length)];
-    setState({ loading: false, error: null, location: pick });
-    storeSessionLocation(pick);
-    void persistLocation(pick);
-    return pick;
+
+    if (!navigator.geolocation) {
+      const error = "Your browser cannot read location. Pick manually instead.";
+      setState((s) => ({ ...s, loading: false, error }));
+      throw new Error(error);
+    }
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          maximumAge: 60_000,
+          timeout: GEOLOCATION_TIMEOUT_MS,
+        });
+      });
+      const loc = await resolveBrowserLocation(position.coords);
+      setState({ loading: false, error: null, location: loc });
+      storeSessionLocation(loc);
+      void persistLocation(loc);
+      return loc;
+    } catch (cause) {
+      const error =
+        isPermissionDenied(cause)
+          ? "Location permission was denied. Pick manually instead."
+          : "Could not read your location. Pick manually instead.";
+      setState((s) => ({ ...s, loading: false, error }));
+      throw new Error(error);
+    }
   }, []);
 
   const setManual = useCallback((loc: Location) => {
