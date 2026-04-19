@@ -505,10 +505,21 @@ body {
 /* ───────────────────────────────────────────────────────────── */
 /* Mobile + Tablet (≤ 1023px) — full-viewport card, no frame    */
 /* ───────────────────────────────────────────────────────────── */
+.ew-stage {
+  width: 100vw;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
 .ew-stage-bg {
   position: relative;
   width: 100vw;
-  min-height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 100svh;
   min-height: 100dvh;
   padding: 0;
   box-sizing: border-box;
@@ -534,13 +545,23 @@ body {
 .ew-card-frame {
   position: relative;
   width: 100vw;
+  height: 100svh;
   height: 100dvh;
   max-width: 100%;
+  max-height: 100svh;
   max-height: 100dvh;
   border-radius: 0;
   overflow: hidden;
   z-index: 2;
   background: #050608;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .ew-stage,
+  .ew-stage-bg,
+  .ew-card-frame {
+    min-height: -webkit-fill-available;
+  }
 }
 
 .ew-stage-meta,

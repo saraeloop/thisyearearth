@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/next';
+import type { Viewport } from 'next';
 import { DM_Serif_Display, JetBrains_Mono } from 'next/font/google';
 import { metadata as siteMetadata } from '@/config/site';
 import './globals.css';
@@ -17,6 +18,12 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata = siteMetadata;
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

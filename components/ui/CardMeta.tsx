@@ -20,7 +20,7 @@ export function CardMeta({ active, chapter }: CardMetaProps) {
         className="ew-card-meta"
         style={{
           position: 'absolute',
-          top: isDesktop ? 48 : 36,
+          top: isDesktop ? 48 : 'calc(env(safe-area-inset-top, 0px) + 30px)',
           left: isDesktop ? '4vw' : 24,
           right: isDesktop ? '4vw' : 24,
           zIndex: 20,
@@ -47,7 +47,7 @@ export function CardMeta({ active, chapter }: CardMetaProps) {
           className="ew-card-chapter"
           style={{
             position: 'absolute',
-            top: isDesktop ? 48 : 74,
+            top: isDesktop ? 48 : 'calc(env(safe-area-inset-top, 0px) + 68px)',
             left: isDesktop ? '50%' : 24,
             transform: isDesktop ? 'translateX(-50%)' : undefined,
             width: isDesktop ? 'min(52vw, 620px)' : undefined,
