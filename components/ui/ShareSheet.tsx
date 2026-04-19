@@ -266,7 +266,7 @@ function Sheet({
                 ? "100%"
                 : "min(100%, 360px, calc((100dvh - 300px) * 9 / 14))",
             margin: isDesktop ? "0 auto 14px" : "0 auto 16px",
-            aspectRatio: "9 / 14",
+            aspectRatio: isPhone ? "9 / 10.8" : "9 / 14",
             borderRadius: 14,
             overflow: "hidden",
             position: "relative",
@@ -310,7 +310,7 @@ function Sheet({
           <div
             style={{
               position: "absolute",
-              top: isDesktop ? "18%" : isPhone ? "16%" : "17%",
+              top: isDesktop ? "18%" : isPhone ? "17%" : "17%",
               left: isPhone ? 22 : 26,
               width: isDesktop
                 ? quoteLayout.previewWidthDesktop
@@ -363,7 +363,7 @@ function Sheet({
           <div
             style={{
               position: "absolute",
-              top: isDesktop ? "59%" : isPhone ? "55%" : "66%",
+              top: isDesktop ? "59%" : isPhone ? "50%" : "66%",
               right: isPhone ? 20 : 24,
               width: isPhone ? "46%" : "42%",
               zIndex: 5,
@@ -395,7 +395,7 @@ function Sheet({
               position: "absolute",
               left: 20,
               right: 20,
-              bottom: 51,
+              bottom: isPhone ? 42 : 51,
               zIndex: 5,
               height: 1,
               background:
@@ -406,14 +406,14 @@ function Sheet({
           <div
             style={{
               position: "absolute",
-              bottom: 21,
+              bottom: isPhone ? 14 : 21,
               left: 0,
               right: 0,
               zIndex: 5,
               textAlign: "center",
               fontFamily: FONTS.MONO,
-              fontSize: 7.2,
-              lineHeight: 1.8,
+              fontSize: isPhone ? 6.4 : 7.2,
+              lineHeight: isPhone ? 1.55 : 1.8,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
               color: PALETTE.ASH_DIM,
