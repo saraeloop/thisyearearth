@@ -34,7 +34,6 @@ export function TempCard({ active, onNext, onShare, grainLevel, voiceTone }: Car
 
       <StatLadder
         accent={accent}
-        top={230}
         rows={[
           { left: "— 0.00", right: "baseline" },
           { left: "— 0.54", right: "1980" },

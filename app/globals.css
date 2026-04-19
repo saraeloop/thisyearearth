@@ -16,7 +16,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 50% 40%, #0b0d14 0%, #050608 70%);
+  background: var(--ew-bg-bottom);
   color: var(--ew-ash);
   font-family: "JetBrains Mono", ui-monospace, monospace;
 }
@@ -508,13 +508,13 @@ body {
 html.ew-story-locked,
 body.ew-story-locked {
   overscroll-behavior: none;
+  background: var(--ew-bg-bottom);
 }
 
 body.ew-story-locked {
   width: 100%;
   min-height: 100%;
   overflow: hidden;
-  background: #0a0e1a;
 }
 
 .ew-stage {
@@ -522,11 +522,14 @@ body.ew-story-locked {
   --ew-story-bottom-safe: env(safe-area-inset-bottom, 0px);
   --ew-story-meta-top: calc(var(--ew-story-top-safe) + 28px);
   --ew-story-chapter-top: calc(var(--ew-story-top-safe) + 66px);
-  --ew-story-nav-bottom: calc(var(--ew-story-bottom-safe) + 18px);
-  --ew-story-footer-bottom: calc(var(--ew-story-bottom-safe) + 4px);
-  --ew-story-quote-bottom: calc(var(--ew-story-nav-bottom) + 58px);
+  --ew-story-nav-bottom: max(18px, var(--ew-story-bottom-safe));
+  --ew-story-footer-bottom: max(4px, calc(var(--ew-story-bottom-safe) - 20px));
+  --ew-story-quote-bottom: calc(var(--ew-story-nav-bottom) + 72px);
   --ew-story-stat-label-bottom: 180px;
   --ew-story-horizon-bottom: 158px;
+  --ew-story-stat-meta-top: 196px;
+  --ew-story-stat-shift: -10px;
+  --ew-story-stat-max-font: 178px;
   --ew-story-location-actions-bottom: calc(var(--ew-story-nav-bottom) + 58px);
   --ew-story-pledge-title-top: calc(
     var(--ew-story-top-safe) + clamp(68px, 12svh, 104px)
@@ -546,7 +549,7 @@ body.ew-story-locked {
   height: 100dvh;
   min-height: 100svh;
   overflow: hidden;
-  background: #0a0e1a;
+  background: var(--ew-bg-bottom);
   overscroll-behavior: none;
 }
 
@@ -557,7 +560,7 @@ body.ew-story-locked {
   min-height: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: #0a0e1a;
+  background-color: var(--ew-bg-bottom);
   overflow: hidden;
 }
 
@@ -586,7 +589,7 @@ body.ew-story-locked {
   border-radius: 0;
   overflow: hidden;
   z-index: 2;
-  background: #0a0e1a;
+  background: var(--ew-bg-bottom);
 }
 
 .ew-stage-meta,

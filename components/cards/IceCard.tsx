@@ -59,7 +59,6 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
 
       <StatLadder
         accent={accent}
-        top={260}
         rows={[
           { left: "— GREENLAND", right: "· 270 GT" },
           { left: "— ANTARCTICA", right: "· 150 GT" },
@@ -69,7 +68,6 @@ export function IceCard({ active, onNext, onShare, grainLevel, voiceTone }: Card
         ]}
       />
       <StatSourceMeta
-        top={260}
         rows={["SRC: NASA GRACE-FO", "SRC: NSIDC"]}
         dim={["CRYOSPHERE", "ANNUAL NET"]}
       />
