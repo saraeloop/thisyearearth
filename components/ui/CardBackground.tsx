@@ -14,7 +14,8 @@ export function CardBackground({ grainLevel = 1 }: CardBackgroundProps) {
           inset: 0,
           zIndex: 0,
           backgroundColor: "var(--ew-story-bg-bottom)",
-          backgroundImage: "var(--ew-story-atmosphere-image)",
+          backgroundImage:
+            "var(--ew-phone-atmosphere-image, var(--ew-story-atmosphere-image))",
         }}
       />
       <div
