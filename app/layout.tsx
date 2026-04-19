@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/next';
 import { DM_Serif_Display, JetBrains_Mono } from 'next/font/google';
 import { metadata as siteMetadata } from '@/config/site';
@@ -24,8 +24,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       lang="en"
       className={`${serif.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
-      <Analytics />
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
+      </body>
     </html>
   );
 }
