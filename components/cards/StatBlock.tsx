@@ -69,6 +69,7 @@ export function StatBlock({
         <div style={halo} />
         {overline && (
           <div
+            className="ew-stat-overline"
             style={{
               fontFamily: FONTS.MONO,
               fontSize: 10,
@@ -101,6 +102,7 @@ export function StatBlock({
           {children}
         </div>
         <div
+          className="ew-stat-unit"
           style={{
             marginTop: 18,
             fontFamily: FONTS.MONO,
