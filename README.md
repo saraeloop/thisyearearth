@@ -1,10 +1,12 @@
 <h1 align="center">Earth Wrapped · MMXXVI</h1>
 
-Earth is the narrator.
-The year is the subject.
-The reader is asked to answer back.
+<p align="center">
+  Earth is the narrator. The year is the subject. The reader is asked to answer back.
+</p>
 
-`thisyear.earth` is an immersive climate year-in-review told as eleven full-screen chapters. It uses the familiar emotional shape of a wrapped recap, then turns the perspective inside out: the account belongs to Earth, the receipts are climate data, and the final action becomes a pledge.
+<p align="center">
+  <code>thisyear.earth</code> is an immersive climate year-in-review told as eleven full-screen chapters. It uses the familiar emotional shape of a wrapped recap, then turns the perspective inside out: the account belongs to Earth, the receipts are climate data, and the final action becomes a pledge.
+</p>
 
 ## Creative Direction
 
@@ -50,7 +52,7 @@ Pledges can be stored through Neon and represented with a Solana memo transactio
 - **NOAA GML** daily Mauna Loa CO2 data
 - **Neon** for pledge data
 - **Solana memo transactions** for the pledge ledger
-- **globe.gl / three-globe assets** for the final reader globe
+- **react-globe.gl / Three.js** for the final reader globe
 
 ## Local Development
 
@@ -67,15 +69,15 @@ http://localhost:3000
 
 ## Environment
 
-The app can run without environment variables. Missing services fall back to local or stubbed behavior where possible.
+In local development, the app can run without environment variables. Missing data services fall back to in-memory or stubbed behavior where possible.
 
 ```bash
 DATABASE_URL=postgres://...
 ```
 
-`DATABASE_URL` enables persistent pledge counts and pledge records through Neon.
+`DATABASE_URL` enables persistent pledge counts and pledge records through Neon and is required in production.
 
-## Scripts
+## Commands
 
 ```bash
 npm run dev
@@ -97,8 +99,15 @@ Other climate figures are presented as editorial chapter data inside the experie
 - plastic production
 - renewable energy growth
 
-## TODO / Refactor
+## TODO / Refactor Checklist
 
-- Clarify story shell CSS ownership so desktop, tablet, and phone rules do not override each other accidentally.
-- Reduce inline style duplication across card components where repeated layout contracts already exist.
-- Give each major card family a clearer layout primitive: stat cards, interactive cards, receipt/share cards, and final globe.
+- [ ] Define one story-shell layout contract for desktop, tablet, and phone so breakpoint rules do not override each other accidentally.
+- [ ] Move repeated card positioning, typography, and chrome spacing into shared primitives before adding more one-off card overrides.
+- [ ] Keep iPhone Safari/browser chrome fixes behind phone-only selectors so desktop visuals cannot regress.
+- [ ] Split card layout primitives by family: stat cards, interactive cards, receipt/share cards, and final globe.
+- [ ] Centralize background ownership for base color, atmosphere, grain, glow, and per-card overrides.
+- [ ] Add visual regression checks for desktop slide 10, final desktop chrome, iPhone Safari story shell, and the mobile share sheet.
+
+## License
+
+MIT License © Sara Loera
