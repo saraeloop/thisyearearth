@@ -972,6 +972,13 @@ body.ew-story-locked {
     pointer-events: auto;
   }
 
+  .ew-desktop-root [data-card="final"] .ew-card-chrome {
+    left: 4vw !important;
+    right: 4vw !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
   .ew-desktop-root .ew-card-meta {
     top: 48px !important;
     left: 4vw !important;

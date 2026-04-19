@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { PALETTE, FONTS, ACCENTS } from '@/constants/colors';
+import { TOTAL_CARDS } from '@/constants/cards';
 import type { CardCommonProps } from '@/types';
 import { CardShell } from './CardShell';
 import { EarthQuote } from '@/components/ui/CardTypography';
@@ -111,7 +112,7 @@ export function IntroCard({
         style={{
           position: 'absolute',
           bottom: 100,
-          left: 24,
+          left: isDesktop ? '4vw' : 24,
           zIndex: 15,
           fontFamily: FONTS.MONO,
           fontSize: 8.5,
@@ -121,14 +122,23 @@ export function IntroCard({
           textTransform: 'uppercase',
         }}
       >
-        <div>Filed: 2026.04.17</div>
-        <div>Cycles: 4.543 · 10⁹</div>
+        {isDesktop ? (
+          <>
+            <MetaLine label="Filed" value="2026.04.17" />
+            <MetaLine label="Cycles" value="4.543 · 10⁹" />
+          </>
+        ) : (
+          <>
+            <div>Filed: 2026.04.17</div>
+            <div>Cycles: 4.543 · 10⁹</div>
+          </>
+        )}
       </div>
       <div
         style={{
           position: 'absolute',
           bottom: 100,
-          right: 24,
+          right: isDesktop ? '4vw' : 24,
           zIndex: 15,
           fontFamily: FONTS.MONO,
           fontSize: 8.5,
@@ -139,9 +149,46 @@ export function IntroCard({
           textAlign: 'right',
         }}
       >
-        <div>Vol. MMXXVI</div>
-        <div>09 Entries</div>
+        {isDesktop ? (
+          <>
+            <MetaLine label="Vol." value="MMXXVI" align="right" />
+            <MetaLine
+              label="Entries"
+              value={String(TOTAL_CARDS).padStart(2, '0')}
+              align="right"
+            />
+          </>
+        ) : (
+          <>
+            <div>Vol. MMXXVI</div>
+            <div>{String(TOTAL_CARDS).padStart(2, '0')} Entries</div>
+          </>
+        )}
       </div>
     </CardShell>
+  );
+}
+
+function MetaLine({
+  label,
+  value,
+  align = 'left',
+}: {
+  label: string;
+  value: string;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: align === 'right' ? 'auto minmax(42px, max-content)' : 'auto auto',
+        columnGap: 8,
+        justifyContent: align === 'right' ? 'end' : 'start',
+      }}
+    >
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
   );
 }

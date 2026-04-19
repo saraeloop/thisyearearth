@@ -7,7 +7,6 @@ import type { CardId, Pledge } from "@/types";
 import { SITE } from "@/config/site";
 import { backdrop, sheetSlideUp, EASE_OUT } from "@/constants/variants";
 import { LargeGrain, GrainTexture } from "./Grain";
-import { usePledgeCount } from "@/hooks/usePledge";
 import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 
 type ShareSheetProps = {
@@ -35,7 +34,6 @@ const PRESET_PLEDGE_LINES: Record<string, string[]> = {
   repair: ["I will repair more", "this year. Every", "thing kept counts."],
 };
 
-const SHARE_COUNT_THRESHOLD = 100;
 const SHARE_URL = `https://${SITE.domain}`;
 const LEDGER_URL = `${SHARE_URL}/ledger`;
 const SHARE_TEXT = "I made a pledge to Earth.";
@@ -43,7 +41,7 @@ const POSTER_WIDTH = 1080;
 const POSTER_HEIGHT = 1920;
 const POSTER_FILENAME = "earth-wrapped-pledge.png";
 
-type ShareActionKind = "story" | "x" | "copy-image" | "copy-link" | "ledger";
+type ShareActionKind = "story" | "x" | "copy-image" | "ledger";
 
 const QUOTE_LAYOUTS = {
   hero: {
@@ -102,17 +100,13 @@ function Sheet({
   const posterRef = useRef<HTMLCanvasElement>(null);
   const [busyAction, setBusyAction] = useState<ShareActionKind | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const pledgeCount = usePledgeCount(3000);
   const pledgeLines = getPledgeLines(pledge);
   const signatureName = getSignatureName(pledge);
   const quoteLength = getPledgeCharacterLength(pledge, pledgeLines);
   const quoteLayout = getQuoteLayout(quoteLength);
   const isDesktop = useMediaMin(1024);
   const isPhone = useMediaMax(767);
-  const footerPledgeText =
-    pledgeCount >= SHARE_COUNT_THRESHOLD
-      ? `Pledges minted · live · ${pledgeCount.toLocaleString("en-US")}`
-      : "Pledges minted · live";
+  const footerPledgeText = getFooterPledgeText(pledge);
 
   const runAction = async (
     action: ShareActionKind,
@@ -179,12 +173,6 @@ function Sheet({
       }
       downloadBlob(blob, POSTER_FILENAME);
       return "Image downloaded.";
-    });
-
-  const handleCopyLink = () =>
-    runAction("copy-link", async () => {
-      await copyTextToClipboard(SHARE_URL);
-      return "Link copied.";
     });
 
   const handleLedger = () =>
@@ -363,7 +351,7 @@ function Sheet({
           <div
             style={{
               position: "absolute",
-              top: isDesktop ? "59%" : isPhone ? "50%" : "66%",
+              top: isDesktop ? "59%" : isPhone ? "54%" : "66%",
               right: isPhone ? 20 : 24,
               width: isPhone ? "46%" : "42%",
               zIndex: 5,
@@ -444,13 +432,9 @@ function Sheet({
             disabled={!!busyAction}
           />
           <ShareAction
-            label={
-              isPhone
-                ? busyAction === "ledger" ? "Opening..." : "Ledger"
-                : busyAction === "copy-link" ? "Copying..." : "Copy Link"
-            }
-            sub={isPhone ? "View Record" : SITE.domain}
-            onClick={isPhone ? handleLedger : handleCopyLink}
+            label={busyAction === "ledger" ? "Opening..." : "Ledger"}
+            sub="View Record"
+            onClick={handleLedger}
             disabled={!!busyAction}
           />
         </div>
@@ -553,6 +537,11 @@ function trimWithEllipsis(text: string, maxLength: number) {
 
 function getSignatureName(pledge?: Pledge | null) {
   return pledge?.name?.trim() || null;
+}
+
+function getFooterPledgeText(pledge: Pledge | null | undefined) {
+  if (pledge?.minted) return "Minted to the ledger · yours";
+  return "Pledges minted · live";
 }
 
 function getPledgeCharacterLength(pledge: Pledge | null | undefined, lines: string[]) {
@@ -1038,22 +1027,4 @@ function downloadBlob(blob: Blob, filename: string) {
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-async function copyTextToClipboard(text: string) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.left = "-9999px";
-  document.body.appendChild(textarea);
-  textarea.select();
-  const copied = document.execCommand("copy");
-  textarea.remove();
-  if (!copied) throw new Error("Clipboard copy failed.");
 }
