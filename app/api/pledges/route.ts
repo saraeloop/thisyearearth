@@ -11,50 +11,13 @@ import { fetchLatestCo2 } from "@/lib/api/co2";
 import type { Pledge } from "@/types";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import { revalidateTag } from "next/cache";
-import {
-  isLikelySolanaSignature,
-  isValidPledgeMintMetadata,
-  SOLANA_MEMO_PROGRAM_ID,
-  SOLANA_NETWORK,
-  type PledgeMintMetadata,
-} from "@/lib/solana/mint";
+import { normalizePledgeMintMetadata } from "@/lib/solana/pledgeMintMetadata";
 
 function optionalCoordinate(value: unknown, min: number, max: number): number | null {
   if (value === null || value === undefined || value === "") return null;
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n) || n < min || n > max) return null;
   return n;
-}
-
-function optionalMintMetadata(value: unknown, pledgeText: string): PledgeMintMetadata | null {
-  if (!value || typeof value !== "object") return null;
-  const mint = value as Partial<PledgeMintMetadata>;
-  if (
-    typeof mint.txHash !== "string" ||
-    typeof mint.walletAddress !== "string" ||
-    typeof mint.memo !== "string" ||
-    typeof mint.explorerUrl !== "string" ||
-    typeof mint.mintedAt !== "string"
-  ) {
-    return null;
-  }
-
-  const metadata: PledgeMintMetadata = {
-    txHash: mint.txHash,
-    network: mint.network === SOLANA_NETWORK ? mint.network : SOLANA_NETWORK,
-    walletAddress: mint.walletAddress,
-    memo: mint.memo,
-    memoProgramId:
-      mint.memoProgramId === SOLANA_MEMO_PROGRAM_ID
-        ? mint.memoProgramId
-        : SOLANA_MEMO_PROGRAM_ID,
-    explorerUrl: mint.explorerUrl,
-    mintedAt: mint.mintedAt,
-  };
-
-  if (!isLikelySolanaSignature(metadata.txHash)) return null;
-  if (!isValidPledgeMintMetadata(metadata, pledgeText)) return null;
-  return metadata;
 }
 
 export async function GET(req: NextRequest) {
@@ -137,7 +100,7 @@ export async function POST(req: NextRequest) {
         })
       : null;
 
-  const mint = optionalMintMetadata(body.mint, pledgeText);
+  const mint = normalizePledgeMintMetadata(body.mint, pledgeText);
   if (body.mint !== undefined && !mint) {
     return NextResponse.json({ error: "invalid mint metadata" }, { status: 400 });
   }

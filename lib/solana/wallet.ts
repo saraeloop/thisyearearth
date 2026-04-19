@@ -19,10 +19,9 @@ import {
   SOLANA_RPC_URL,
   type PledgeMintMetadata,
 } from "./mint";
+import { encodeBase58, normalizeWalletSignature } from "./signature";
 
 const MIN_TEST_CLUSTER_FEE_LAMPORTS = 10_000;
-const BASE58_ALPHABET =
-  "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 type WalletConnectResult = {
   publicKey?: { toString: () => string };
@@ -34,7 +33,7 @@ type SolanaWalletProvider = {
   connect: () => Promise<WalletConnectResult>;
   signAndSendTransaction?: (
     transaction: VersionedTransaction,
-  ) => Promise<{ signature: string | Uint8Array }>;
+  ) => Promise<{ signature: string | Uint8Array | number[] }>;
   signTransaction?: (
     transaction: VersionedTransaction,
   ) => Promise<VersionedTransaction>;
@@ -84,38 +83,6 @@ function getErrorMessage(error: unknown) {
 
 function isAlreadyProcessedError(error: unknown) {
   return getErrorMessage(error).toLowerCase().includes("already been processed");
-}
-
-function encodeBase58(bytes: Uint8Array) {
-  if (bytes.length === 0) return "";
-
-  const digits = [0];
-  for (const byte of bytes) {
-    let carry = byte;
-    for (let i = 0; i < digits.length; i += 1) {
-      const value = digits[i] * 256 + carry;
-      digits[i] = value % 58;
-      carry = Math.floor(value / 58);
-    }
-    while (carry > 0) {
-      digits.push(carry % 58);
-      carry = Math.floor(carry / 58);
-    }
-  }
-
-  let result = "";
-  for (const byte of bytes) {
-    if (byte === 0) result += BASE58_ALPHABET[0];
-    else break;
-  }
-  for (let i = digits.length - 1; i >= 0; i -= 1) {
-    result += BASE58_ALPHABET[digits[i]];
-  }
-  return result;
-}
-
-function normalizeSignature(signature: string | Uint8Array) {
-  return typeof signature === "string" ? signature : encodeBase58(signature);
 }
 
 async function logSolanaError(
@@ -213,7 +180,7 @@ export async function mintPledgeOnDevnet(
   try {
     if (provider.signAndSendTransaction) {
       const result = await provider.signAndSendTransaction(transaction);
-      txHash = normalizeSignature(result.signature);
+      txHash = normalizeWalletSignature(result.signature);
     } else if (provider.signTransaction) {
       const signed = await provider.signTransaction(transaction);
       try {
