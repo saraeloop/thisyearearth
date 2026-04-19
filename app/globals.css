@@ -540,6 +540,9 @@ body.ew-story-locked {
   overscroll-behavior: none;
   background-color: var(--ew-story-bg-bottom);
   background-image: var(--ew-story-atmosphere-image);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 body.ew-story-locked {
@@ -630,6 +633,68 @@ body.ew-story-locked {
 .ew-progress-discrete,
 .ew-desktop-progress {
   display: none !important;
+}
+
+@media (max-width: 1023px) {
+  html.ew-story-locked,
+  body.ew-story-locked,
+  .ew-stage,
+  .ew-stage-bg,
+  .ew-card-frame {
+    --ew-story-atmosphere-image:
+      radial-gradient(
+        ellipse 130% 42% at 50% -8%,
+        var(--ew-story-accent-glow) 0%,
+        rgba(13, 19, 34, 0.32) 42%,
+        transparent 76%
+      ),
+      radial-gradient(
+        ellipse 150% 58% at 50% 108%,
+        var(--ew-story-accent-glow) 0%,
+        rgba(13, 19, 34, 0.48) 34%,
+        rgba(5, 7, 13, 0.82) 72%,
+        rgba(5, 7, 13, 0.96) 100%
+      ),
+      radial-gradient(
+        ellipse 180% 120% at 50% 50%,
+        var(--ew-story-overlay-tint) 0%,
+        transparent 65%
+      ),
+      linear-gradient(
+        180deg,
+        var(--ew-story-bg-mid) 0%,
+        var(--ew-story-bg-top) 50%,
+        var(--ew-story-bg-bottom) 100%
+      );
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  .ew-card-frame::before,
+  .ew-card-frame::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 14;
+    pointer-events: none;
+  }
+
+  .ew-card-frame::before {
+    top: 0;
+    height: 124px;
+    background:
+      radial-gradient(ellipse 120% 70% at 50% 0%, var(--ew-story-accent-glow), transparent 62%),
+      linear-gradient(180deg, rgba(5, 7, 13, 0.42), transparent);
+  }
+
+  .ew-card-frame::after {
+    bottom: 0;
+    height: calc(var(--ew-story-bottom-safe) + 168px);
+    background:
+      radial-gradient(ellipse 150% 72% at 50% 100%, var(--ew-story-accent-glow), transparent 64%),
+      linear-gradient(180deg, transparent 0%, rgba(5, 7, 13, 0.7) 58%, rgba(5, 7, 13, 0.98) 100%);
+  }
 }
 
 /* ───────────────────────────────────────────────────────────── */
