@@ -348,7 +348,13 @@ body {
 .ew-ledger-telemetry {
   display: flex;
   align-items: center;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 7px 16px;
+  min-width: 0;
+}
+
+.ew-ledger-telemetry-item {
+  white-space: nowrap;
 }
 
 .ew-ledger-telemetry-value {

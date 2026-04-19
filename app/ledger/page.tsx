@@ -41,6 +41,22 @@ function LedgerLoading() {
   );
 }
 
+const LEDGER_STATS = [
+  { label: 'Temp', value: '+1.55C' },
+  { label: 'Ice lost', value: '1.17T' },
+  { label: 'Forest', value: '14.9M HA' },
+  { label: 'Species', value: '41,046' },
+  { label: 'Plastic', value: '400M T' },
+  { label: 'Clean energy', value: '+32%' },
+] as const;
+
+function ledgerStatForPledge(pledge: PledgeRow, number: number) {
+  const stats = pledge.co2PpmAtMint ?
+    [{ label: 'CO2', value: `${pledge.co2PpmAtMint} PPM` }, ...LEDGER_STATS]
+  : [{ label: 'Network', value: pledge.mintNetwork ?? SOLANA_NETWORK }, ...LEDGER_STATS];
+  return stats[Math.max(0, number - 1) % stats.length];
+}
+
 function LedgerEntry({
   pledge,
   number,
@@ -50,6 +66,7 @@ function LedgerEntry({
 }) {
   const href = ledgerExplorerHref(pledge);
   const txHash = pledge.txHash;
+  const ledgerStat = ledgerStatForPledge(pledge, number);
 
   return (
     <article className="ew-ledger-entry">
@@ -68,22 +85,11 @@ function LedgerEntry({
       <div className="ew-ledger-author">{pledge.name || 'Anonymous'}</div>
 
       <div className="ew-ledger-entry-foot">
-        <div className="ew-ledger-telemetry">
-          {pledge.co2PpmAtMint ?
-            <span>
-              CO2{' '}
-              <span className="ew-ledger-telemetry-value">
-                {pledge.co2PpmAtMint}
-              </span>{' '}
-              PPM
-            </span>
-          : <span>
-              NETWORK{' '}
-              <span className="ew-ledger-telemetry-value">
-                {pledge.mintNetwork ?? SOLANA_NETWORK}
-              </span>
-            </span>
-          }
+        <div className="ew-ledger-telemetry" aria-label="Mint telemetry">
+          <span className="ew-ledger-telemetry-item">
+            {ledgerStat.label}{' '}
+            <span className="ew-ledger-telemetry-value">{ledgerStat.value}</span>
+          </span>
         </div>
 
         {href && txHash ?
@@ -175,7 +181,7 @@ export default function LedgerPage() {
         <nav className="ew-ledger-nav" aria-label="Ledger navigation">
           <div>
             <span className="ew-ledger-dot" />
-            {SITE.domain}
+            Wrapped · MMXXVI
           </div>
           <Link href="/">← Wrapped</Link>
         </nav>
