@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { PALETTE, FONTS, ACCENTS } from '@/constants/colors';
 import type { CardCommonProps, Location, Pledge } from '@/types';
 import { VOICE_QUOTES } from '@/constants/quotes';
@@ -146,10 +146,12 @@ export function FinalCard({
       </div>
 
       <div className="ew-final-globe">
-        <FinalGlobe
-          accent={accent}
-          locations={finalGlobeLocations}
-        />
+        <Suspense fallback={null}>
+          <FinalGlobe
+            accent={accent}
+            locations={finalGlobeLocations}
+          />
+        </Suspense>
       </div>
 
       <div
