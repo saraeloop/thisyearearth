@@ -3,6 +3,7 @@
 import {
   Connection,
   PublicKey,
+  SendTransactionError,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
@@ -20,6 +21,8 @@ import {
 } from "./mint";
 
 const MIN_TEST_CLUSTER_FEE_LAMPORTS = 10_000;
+const BASE58_ALPHABET =
+  "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 type WalletConnectResult = {
   publicKey?: { toString: () => string };
@@ -73,12 +76,57 @@ function isWalletRejection(error: unknown) {
   );
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "";
+}
+
+function isAlreadyProcessedError(error: unknown) {
+  return getErrorMessage(error).toLowerCase().includes("already been processed");
+}
+
+function encodeBase58(bytes: Uint8Array) {
+  if (bytes.length === 0) return "";
+
+  const digits = [0];
+  for (const byte of bytes) {
+    let carry = byte;
+    for (let i = 0; i < digits.length; i += 1) {
+      const value = digits[i] * 256 + carry;
+      digits[i] = value % 58;
+      carry = Math.floor(value / 58);
+    }
+    while (carry > 0) {
+      digits.push(carry % 58);
+      carry = Math.floor(carry / 58);
+    }
+  }
+
+  let result = "";
+  for (const byte of bytes) {
+    if (byte === 0) result += BASE58_ALPHABET[0];
+    else break;
+  }
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    result += BASE58_ALPHABET[digits[i]];
+  }
+  return result;
+}
+
 async function logSolanaError(
   scope: string,
   error: unknown,
   connection?: Connection,
 ) {
   console.error(`[solana:${scope}]`, error);
+  if (connection && error instanceof SendTransactionError) {
+    try {
+      console.error(`[solana:${scope}:logs]`, await error.getLogs(connection));
+    } catch {
+      // The original error above is the important one.
+    }
+  }
   if (error && typeof error === "object") {
     const maybeLogs = (error as { logs?: unknown }).logs;
     if (maybeLogs) console.error(`[solana:${scope}:logs]`, maybeLogs);
@@ -159,15 +207,24 @@ export async function mintPledgeOnDevnet(
 
   let txHash: string;
   try {
-    if (provider.signTransaction) {
-      const signed = await provider.signTransaction(transaction);
-      txHash = await connection.sendRawTransaction(signed.serialize(), {
-        preflightCommitment: "confirmed",
-        maxRetries: 3,
-      });
-    } else if (provider.signAndSendTransaction) {
+    if (provider.signAndSendTransaction) {
       const result = await provider.signAndSendTransaction(transaction);
       txHash = result.signature;
+    } else if (provider.signTransaction) {
+      const signed = await provider.signTransaction(transaction);
+      try {
+        txHash = await connection.sendRawTransaction(signed.serialize(), {
+          preflightCommitment: "confirmed",
+          maxRetries: 3,
+        });
+      } catch (error) {
+        const signature = signed.signatures[0];
+        if (isAlreadyProcessedError(error) && signature) {
+          txHash = encodeBase58(signature);
+        } else {
+          throw error;
+        }
+      }
     } else {
       throw new Error("Wallet does not support transaction signing.");
     }
