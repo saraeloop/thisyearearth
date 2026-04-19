@@ -25,6 +25,7 @@ import { SpeciesCard } from "@/components/cards/SpeciesCard";
 import { PlasticCard } from "@/components/cards/PlasticCard";
 import { RenewablesCard } from "@/components/cards/RenewablesCard";
 import { FinalCard } from "@/components/cards/FinalCard";
+import { useMediaMax } from "@/hooks/useBreakpoint";
 
 type MobileStoryProps = { tweaks: Tweaks };
 
@@ -39,6 +40,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [userPledge, setUserPledge] = useState<Pledge | null>(null);
   const [restoredActive, setRestoredActive] = useState(false);
+  const isPhone = useMediaMax(767);
 
   useEffect(() => {
     document.documentElement.classList.add("ew-story-locked");
@@ -135,9 +137,14 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
   };
 
   return (
-    <SwipeContainer onNext={next} onPrev={prev} className="ew-stage">
-      <div className="ew-story-atmosphere" aria-hidden="true" />
-      <div className="ew-stage-bg">
+    <SwipeContainer
+      onNext={next}
+      onPrev={prev}
+      className="ew-stage ew-phone-shell"
+      touchAction={isPhone ? "none" : "pan-y"}
+    >
+      <div className="ew-story-atmosphere ew-phone-atmosphere" aria-hidden="true" />
+      <div className="ew-stage-bg ew-phone-viewport">
         {!isInteractive && (
           <div className="ew-tap-zones">
             <div onClick={prev} className="ew-tap-left" />
@@ -145,7 +152,7 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
           </div>
         )}
 
-        <div className="ew-card-frame" data-card={cardId}>
+        <div className="ew-card-frame ew-phone-card-content" data-card={cardId}>
           <AnimatePresence initial={false} mode="sync">
             {cardId === "intro" && <IntroCard key="intro" {...common} />}
             {cardId === "location" && (

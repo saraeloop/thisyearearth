@@ -763,6 +763,125 @@ body.ew-story-locked {
   .ew-earth-quote span {
     color: rgba(246, 239, 222, 0.52) !important;
   }
+
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* Phone story shell (≤ 767px) — fixed scene, shell-owned world */
+/* ───────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  html.ew-story-locked,
+  body.ew-story-locked {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background-color: var(--ew-story-bg-bottom);
+    background-image: var(--ew-story-atmosphere-image);
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  .ew-stage.ew-phone-shell {
+    --ew-phone-side: 24px;
+    --ew-phone-browser-bleed: max(
+      96px,
+      calc(env(safe-area-inset-bottom, 0px) + 72px)
+    );
+    --ew-story-top-safe: max(env(safe-area-inset-top, 0px), 22px);
+    --ew-story-bottom-safe: env(safe-area-inset-bottom, 0px);
+    --ew-story-meta-top: calc(var(--ew-story-top-safe) + 26px);
+    --ew-story-chapter-top: calc(var(--ew-story-top-safe) + 64px);
+    --ew-story-nav-bottom: max(16px, var(--ew-story-bottom-safe));
+    --ew-story-footer-bottom: max(3px, calc(var(--ew-story-bottom-safe) - 20px));
+    --ew-story-quote-bottom: calc(var(--ew-story-nav-bottom) + 74px);
+    --ew-story-stat-label-bottom: 178px;
+    --ew-story-horizon-bottom: 156px;
+    --ew-story-stat-meta-top: calc(var(--ew-story-top-safe) + 168px);
+    --ew-story-stat-shift: -10px;
+    --ew-story-stat-max-font: 176px;
+    --ew-story-location-actions-bottom: calc(var(--ew-story-nav-bottom) + 58px);
+    --ew-story-pledge-title-top: calc(
+      var(--ew-story-top-safe) + clamp(64px, 10svh, 92px)
+    );
+    --ew-story-pledge-form-top: calc(
+      var(--ew-story-top-safe) + clamp(154px, 25svh, 208px)
+    );
+    --ew-story-action-bottom: calc(var(--ew-story-nav-bottom) + 8px);
+    --ew-story-final-count-bottom: calc(var(--ew-story-nav-bottom) + 152px);
+    --ew-story-final-signoff-bottom: calc(var(--ew-story-nav-bottom) + 44px);
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    box-sizing: border-box;
+    overflow: hidden;
+    isolation: isolate;
+    contain: layout paint;
+    background-color: var(--ew-story-bg-bottom);
+    background-image: none;
+    overscroll-behavior: none;
+  }
+
+  .ew-stage.ew-phone-shell > .ew-phone-atmosphere {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: calc(-1 * var(--ew-phone-browser-bleed));
+    left: 0;
+    z-index: 0;
+    overflow: hidden;
+    background-color: var(--ew-story-bg-bottom);
+    background-image: var(--ew-story-atmosphere-image);
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: 100% calc(100% + var(--ew-phone-browser-bleed));
+  }
+
+  .ew-stage.ew-phone-shell > .ew-phone-viewport,
+  .ew-stage.ew-phone-shell .ew-phone-card-content {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    overflow: hidden;
+    background-color: transparent;
+    background-image: none;
+  }
+
+  .ew-stage.ew-phone-shell > .ew-phone-viewport {
+    z-index: 1;
+  }
+
+  .ew-stage.ew-phone-shell .ew-phone-card-content {
+    z-index: 2;
+  }
+
+  .ew-stage.ew-phone-shell .ew-card-chrome {
+    bottom: var(--ew-story-nav-bottom) !important;
+    padding-right: var(--ew-phone-side) !important;
+    padding-left: var(--ew-phone-side) !important;
+    z-index: 30 !important;
+  }
+
+  .ew-stage.ew-phone-shell .ew-card-footer {
+    bottom: var(--ew-story-footer-bottom) !important;
+    z-index: 30 !important;
+  }
+
+  .ew-stage.ew-phone-shell .ew-story-atmosphere::after {
+    height: calc(var(--ew-phone-browser-bleed) + var(--ew-story-bottom-safe) + 168px);
+  }
 }
 
 /* ───────────────────────────────────────────────────────────── */
