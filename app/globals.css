@@ -11,6 +11,12 @@
   --ew-story-overlay-tint: #1a1d2e;
   --ew-story-atmosphere-image:
     radial-gradient(
+      ellipse 120% 50% at 50% -15%,
+      var(--ew-story-accent-glow) 0%,
+      rgba(0, 0, 0, 0.02) 40%,
+      transparent 62%
+    ),
+    radial-gradient(
       ellipse 120% 60% at 50% 115%,
       var(--ew-story-accent-glow) 0%,
       rgba(0, 0, 0, 0.02) 35%,
@@ -23,8 +29,9 @@
     ),
     linear-gradient(
       180deg,
-      var(--ew-story-bg-top) 0%,
-      var(--ew-story-bg-mid) 45%,
+      var(--ew-story-bg-mid) 0%,
+      var(--ew-story-bg-top) 18%,
+      var(--ew-story-bg-mid) 55%,
       var(--ew-story-bg-bottom) 100%
     );
   --ew-ash: #e6d6be;

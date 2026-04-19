@@ -34,9 +34,10 @@ export function CardBackground({
           inset: 0,
           zIndex: 0,
           background: `
+            radial-gradient(ellipse 120% 50% at 50% -15%, ${accent.glow} 0%, rgba(0,0,0,0.02) 40%, transparent 62%),
             radial-gradient(ellipse 120% 60% at 50% 115%, ${accent.glow} 0%, rgba(0,0,0,0.02) 35%, transparent 58%),
             radial-gradient(ellipse 140% 90% at 50% 100%, ${overlayTint} 0%, transparent 60%),
-            linear-gradient(180deg, ${top} 0%, ${mid} 45%, ${bottom} 100%)
+            linear-gradient(180deg, ${mid} 0%, ${top} 18%, ${mid} 55%, ${bottom} 100%)
           `,
         }}
       />
