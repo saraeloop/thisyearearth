@@ -63,11 +63,22 @@ function getPhantomWalletKey(
   walletOptions: ReturnType<typeof useWalletOptions>["walletOptions"],
 ) {
   return (
-    walletOptions.find(
-      (option) =>
-        option.key.toLowerCase().includes("phantom") &&
-        option.supportedChains.includes("SOL"),
-    )?.key ?? "phantom"
+    walletOptions.find((option) => {
+      const key = option.key.toLowerCase();
+      const name = option.name.toLowerCase();
+      const group = option.group?.toLowerCase() ?? "";
+      const supportsSolana =
+        option.supportedChains.includes("SOL") ||
+        option.supportedChains.includes("SOLANA") ||
+        option.chain === "SOL";
+
+      return (
+        supportsSolana &&
+        (key.includes("phantom") ||
+          name.includes("phantom") ||
+          group.includes("phantom"))
+      );
+    })?.key ?? null
   );
 }
 
@@ -189,22 +200,27 @@ export function useDynamicMobileMint({
         }
 
         const phantomKey = getPhantomWalletKey(walletOptions);
-        const selectedWallet = await selectWalletOption(
-          phantomKey,
-          false,
-          true,
-          "SOL",
-        );
-        if (selectedWallet) {
-          await signPendingWithWallet(selectedWallet, pending);
-          return;
+        if (phantomKey) {
+          const selectedWallet = await selectWalletOption(
+            phantomKey,
+            false,
+            true,
+            "SOL",
+          );
+          if (selectedWallet) {
+            await signPendingWithWallet(selectedWallet, pending);
+            return;
+          }
         }
 
         setShowAuthFlow(true);
       } catch (e) {
-        const message =
-          e instanceof Error ? e.message : "Open Phantom to approve the mint.";
-        setError(message);
+        const message = e instanceof Error ? e.message : "";
+        if (message.includes("No wallet found with key")) {
+          setError(null);
+        } else {
+          setError(message || "Open Phantom to approve the mint.");
+        }
         setShowAuthFlow(true);
       } finally {
         setMinting(false);
