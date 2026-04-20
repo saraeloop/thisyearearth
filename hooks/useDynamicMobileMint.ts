@@ -31,6 +31,7 @@ import {
   writePendingMobileMint,
   type PendingDynamicMobileMint,
 } from "@/lib/solana/dynamicMobileMintIntent";
+import { SOLANA_NETWORK } from "@/lib/solana/mint";
 
 const PHANTOM_SOLANA_DEEPLINK_PROVIDER_KEY = "phantomsol:deepLink";
 const PHANTOM_LAUNCH_TIMEOUT_MS = 12_000;
@@ -331,6 +332,7 @@ export function useDynamicMobileMint({
 
       const pending: PendingDynamicMobileMint = {
         version: 1,
+        network: SOLANA_NETWORK,
         stage: "connect",
         pledgeText: input.pledgeText,
         metadata: input.metadata,
