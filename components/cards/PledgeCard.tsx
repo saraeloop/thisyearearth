@@ -32,6 +32,59 @@ const PRESETS = [
   { id: "repair", label: "Repair, don't replace" },
 ];
 
+const PHANTOM_PLEDGE_DRAFT_PARAM = "ewPledgeDraft";
+
+type PledgeDraft = {
+  choice: string | null;
+  custom: string;
+  name: string;
+  country: string;
+  writing: boolean;
+};
+
+function sanitizeDraftString(value: unknown, maxLength: number) {
+  return typeof value === "string" ? value.slice(0, maxLength) : "";
+}
+
+function readPledgeDraftFromUrl(): PledgeDraft | null {
+  if (typeof window === "undefined") return null;
+  const raw = new URL(window.location.href).searchParams.get(
+    PHANTOM_PLEDGE_DRAFT_PARAM,
+  );
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<PledgeDraft>;
+    const choice =
+      typeof parsed.choice === "string" &&
+      PRESETS.some((preset) => preset.id === parsed.choice)
+        ? parsed.choice
+        : null;
+    const custom = sanitizeDraftString(parsed.custom, PLEDGE_TEXT_MAX_LENGTH);
+    const writing = parsed.writing === true && custom.trim().length > 0;
+    return {
+      choice: writing ? null : choice,
+      custom: writing ? custom : "",
+      name: sanitizeDraftString(parsed.name, 80),
+      country: sanitizeDraftString(parsed.country, 80),
+      writing,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearPledgeDraftFromUrl() {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(PHANTOM_PLEDGE_DRAFT_PARAM)) return;
+  url.searchParams.delete(PHANTOM_PLEDGE_DRAFT_PARAM);
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function serializePledgeDraft(draft: PledgeDraft) {
+  return JSON.stringify(draft);
+}
+
 export function PledgeCard({
   active,
   onNext,
@@ -41,11 +94,18 @@ export function PledgeCard({
   userLocation,
   onPledge,
 }: PledgeCardProps) {
-  const [choice, setChoice] = useState<string | null>(userPledge?.choice ?? null);
-  const [custom, setCustom] = useState(userPledge?.custom ?? "");
-  const [name, setName] = useState(userPledge?.name ?? "");
-  const [whereFrom, setWhereFrom] = useState(userPledge?.country ?? "");
-  const [writing, setWriting] = useState(false);
+  const [initialDraft] = useState(() =>
+    userPledge ? null : readPledgeDraftFromUrl(),
+  );
+  const [choice, setChoice] = useState<string | null>(
+    userPledge?.choice ?? initialDraft?.choice ?? null,
+  );
+  const [custom, setCustom] = useState(userPledge?.custom ?? initialDraft?.custom ?? "");
+  const [name, setName] = useState(userPledge?.name ?? initialDraft?.name ?? "");
+  const [whereFrom, setWhereFrom] = useState(
+    userPledge?.country ?? initialDraft?.country ?? "",
+  );
+  const [writing, setWriting] = useState(initialDraft?.writing ?? false);
   const [walletAvailability, setWalletAvailability] =
     useState<WalletProviderAvailability>("missing");
   const { mint, record, minting, error } = useMintPledge();
@@ -62,15 +122,21 @@ export function PledgeCard({
   const canMint = writing ? custom.trim().length >= PLEDGE_TEXT_MIN_LENGTH : !!choice;
   const needsPhantomMobile = walletAvailability === "mobile-no-provider";
   const missingDesktopWallet = walletAvailability === "missing";
-  const mintButtonDisabled = needsPhantomMobile ? false : !canMint;
+  const mintButtonDisabled = !canMint;
   const mintButtonLabel = needsPhantomMobile
     ? "Open in Phantom →"
     : "Mint to the ledger →";
   const mintHint = needsPhantomMobile
-    ? "Open in Phantom to mint on Solana"
+    ? canMint
+      ? "Opens Phantom. Then tap mint to finish."
+      : "Choose a pledge, then open Phantom to mint."
     : missingDesktopWallet
       ? "Install Phantom or Solflare to mint"
       : `Solana ${SOLANA_NETWORK} is optional`;
+
+  useEffect(() => {
+    if (initialDraft) clearPledgeDraftFromUrl();
+  }, [initialDraft]);
 
   useEffect(() => {
     const updateWalletAvailability = () => {
@@ -93,7 +159,16 @@ export function PledgeCard({
 
   const handleMint = async () => {
     if (needsPhantomMobile) {
-      openCurrentPageInPhantom();
+      if (!canMint) return;
+      openCurrentPageInPhantom("pledge", {
+        [PHANTOM_PLEDGE_DRAFT_PARAM]: serializePledgeDraft({
+          choice: writing ? null : choice,
+          custom: writing ? custom : "",
+          name,
+          country: whereFrom,
+          writing,
+        }),
+      });
       return;
     }
     if (!canMint) return;
