@@ -91,12 +91,12 @@ export function buildPhantomBrowseUrl(targetUrl: string, refUrl?: string) {
   return `${PHANTOM_BROWSE_BASE_URL}/${encodeURIComponent(targetUrl)}?ref=${encodeURIComponent(ref)}`;
 }
 
-export function openCurrentPageInPhantom(
+export function buildPhantomBrowseTargetUrl(
+  currentUrl: string,
   hash = "pledge",
   searchParams: Record<string, string | null | undefined> = {},
 ) {
-  if (typeof window === "undefined") return;
-  const target = new URL(window.location.href);
+  const target = new URL(currentUrl);
   for (const [key, value] of Object.entries(searchParams)) {
     if (value === null || value === undefined) {
       target.searchParams.delete(key);
@@ -105,7 +105,20 @@ export function openCurrentPageInPhantom(
     }
   }
   target.hash = hash;
-  window.location.assign(buildPhantomBrowseUrl(target.toString()));
+  return target.toString();
+}
+
+export function openCurrentPageInPhantom(
+  hash = "pledge",
+  searchParams: Record<string, string | null | undefined> = {},
+) {
+  if (typeof window === "undefined") return;
+  const targetUrl = buildPhantomBrowseTargetUrl(
+    window.location.href,
+    hash,
+    searchParams,
+  );
+  window.location.assign(buildPhantomBrowseUrl(targetUrl));
 }
 
 function logSolanaDebug(

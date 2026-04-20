@@ -9,6 +9,7 @@ type PledgeReceiptProps = {
   accent: Accent;
   pledge: string;
   txHash?: string | null;
+  returnHref?: string | null;
   onNext: () => void;
 };
 
@@ -16,6 +17,7 @@ export function PledgeReceipt({
   accent,
   pledge,
   txHash,
+  returnHref,
   onNext,
 }: PledgeReceiptProps) {
   return (
@@ -144,6 +146,26 @@ export function PledgeReceipt({
       >
         Continue →
       </button>
+
+      {returnHref && (
+        <a
+          href={returnHref}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            marginTop: 14,
+            fontFamily: FONTS.MONO,
+            fontSize: 9,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: PALETTE.ASH_DIM,
+            textDecoration: "none",
+          }}
+        >
+          Continue in browser ↗
+        </a>
+      )}
     </div>
   );
 }
