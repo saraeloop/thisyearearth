@@ -557,6 +557,53 @@ body.ew-story-locked {
   overflow: hidden;
 }
 
+@keyframes ew-final-share-rainbow {
+  0%,
+  100% {
+    filter: hue-rotate(0deg);
+    box-shadow:
+      0 0 0 rgba(230, 214, 190, 0),
+      0 0 18px rgba(77, 201, 255, 0.2);
+    transform: translateZ(0) scale(1);
+  }
+
+  50% {
+    filter: hue-rotate(180deg);
+    box-shadow:
+      0 0 14px rgba(255, 195, 113, 0.34),
+      0 0 34px rgba(167, 139, 250, 0.28);
+    transform: translateZ(0) scale(1.04);
+  }
+}
+
+[data-card="final"] .ew-share-button {
+  position: relative;
+  border-color: transparent !important;
+  background:
+    linear-gradient(rgba(230, 214, 190, 0.06), rgba(230, 214, 190, 0.06)) padding-box,
+    conic-gradient(
+      from 0deg,
+      #ff5f6d,
+      #ffc371,
+      #47e891,
+      #4dc9ff,
+      #a78bfa,
+      #ff5f6d
+    ) border-box !important;
+  animation: ew-final-share-rainbow 2.4s linear infinite;
+}
+
+[data-card="final"] .ew-share-button:hover,
+[data-card="final"] .ew-share-button:focus-visible {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-card="final"] .ew-share-button {
+    animation: none;
+  }
+}
+
 .ew-stage {
   --ew-story-top-safe: max(env(safe-area-inset-top, 0px), 24px);
   --ew-story-bottom-safe: env(safe-area-inset-bottom, 0px);

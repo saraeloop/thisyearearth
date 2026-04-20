@@ -221,6 +221,36 @@ export async function listMintedPledges(limit = 50): Promise<PledgeRow[]> {
   return rows.map(mapPledgeRow);
 }
 
+export async function listPledges(limit = 50): Promise<PledgeRow[]> {
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
+  const sql = getSql();
+  if (!sql) return memoryStore.slice(0, safeLimit);
+
+  const rows = (await sql`
+    SELECT
+      id,
+      pledge_text,
+      name,
+      country,
+      country_code,
+      created_at,
+      tx_hash,
+      mint_status,
+      minted_at,
+      co2_ppm_at_mint,
+      mint_network,
+      wallet_address,
+      mint_memo,
+      memo_program_id,
+      explorer_url
+    FROM pledges
+    ORDER BY created_at DESC
+    LIMIT ${safeLimit}
+  `) as PledgeDbRow[];
+
+  return rows.map(mapPledgeRow);
+}
+
 export async function cachedCountTotalPledges(): Promise<number> {
   "use cache";
   cacheTag(TOTAL_PLEDGE_COUNT_CACHE_TAG);

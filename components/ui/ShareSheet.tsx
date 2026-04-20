@@ -35,13 +35,14 @@ const PRESET_PLEDGE_LINES: Record<string, string[]> = {
 };
 
 const SHARE_URL = `https://${SITE.domain}`;
-const LEDGER_URL = `${SHARE_URL}/ledger`;
+const LEDGER_PATH = "/ledger";
+const PLEDGES_PATH = "/pledges";
 const SHARE_TEXT = "I made a pledge to Earth.";
 const POSTER_WIDTH = 1080;
 const POSTER_HEIGHT = 1920;
 const POSTER_FILENAME = "earth-wrapped-pledge.png";
 
-type ShareActionKind = "story" | "x" | "copy-image" | "ledger";
+type ShareActionKind = "story" | "x" | "copy-image" | "record";
 
 const QUOTE_LAYOUTS = {
   hero: {
@@ -108,6 +109,8 @@ function Sheet({
   const isPhone = useMediaMax(767);
   const footerPledgeText = getFooterPledgeText(pledge);
   const xShareText = getXShareText(pledge, pledgeLines);
+  const recordUrl = pledge?.minted ? LEDGER_PATH : PLEDGES_PATH;
+  const recordLabel = pledge?.minted ? "Ledger" : "Pledges";
 
   const runAction = async (
     action: ShareActionKind,
@@ -193,10 +196,11 @@ function Sheet({
       return "Image downloaded.";
     });
 
-  const handleLedger = () =>
-    runAction("ledger", () => {
-      window.location.href = LEDGER_URL;
-      return "Opening ledger.";
+  const handleRecord = () =>
+    runAction("record", () => {
+      const tab = window.open(recordUrl, "_blank");
+      if (tab) tab.opener = null;
+      return pledge?.minted ? "Opening ledger." : "Opening pledges.";
     });
 
   return (
@@ -450,9 +454,9 @@ function Sheet({
             disabled={!!busyAction}
           />
           <ShareAction
-            label={busyAction === "ledger" ? "Opening..." : "Ledger"}
+            label={busyAction === "record" ? "Opening..." : recordLabel}
             sub="View Record"
-            onClick={handleLedger}
+            onClick={handleRecord}
             disabled={!!busyAction}
           />
         </div>
@@ -568,7 +572,8 @@ function getSignatureName(pledge?: Pledge | null) {
 
 function getFooterPledgeText(pledge: Pledge | null | undefined) {
   if (pledge?.minted) return "Minted to the ledger · yours";
-  return "Pledges minted · live";
+  if (pledge) return "Recorded in the pledges · yours";
+  return "Pledges recorded · live";
 }
 
 function getPledgeCharacterLength(pledge: Pledge | null | undefined, lines: string[]) {

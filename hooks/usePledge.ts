@@ -80,10 +80,6 @@ export function usePledgeCounts(pollMs = 30_000) {
   return counts;
 }
 
-export function useMintedPledgeCount(pollMs = 30_000) {
-  return usePledgeCounts(pollMs).minted;
-}
-
 function readSessionLocation(): SessionLocation | null {
   if (typeof window === "undefined") return null;
   const raw = window.localStorage.getItem(SESSION_LOCATION_KEY);

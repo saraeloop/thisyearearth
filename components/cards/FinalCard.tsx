@@ -1,12 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 import { PALETTE, FONTS, ACCENTS } from '@/constants/colors';
 import type { CardCommonProps, Location, Pledge } from '@/types';
 import { VOICE_QUOTES } from '@/constants/quotes';
 import { CardShell } from './CardShell';
 import { FinalGlobe } from './FinalGlobe';
-import { useMintedPledgeCount } from '@/hooks/usePledge';
+import { usePledgeCounts } from '@/hooks/usePledge';
 import { ENDPOINTS } from '@/constants/endpoints';
 import { useMediaMin } from '@/hooks/useBreakpoint';
 
@@ -61,7 +62,7 @@ export function FinalCard({
   userLocation,
   userPledge,
 }: FinalCardProps) {
-  const mintedPledgeCount = useMintedPledgeCount();
+  const pledgeCounts = usePledgeCounts();
   const [globeLocations, setGlobeLocations] = useState<Location[]>([]);
   const isDesktop = useMediaMin(1024);
   const closingLine = VOICE_QUOTES.final?.[voiceTone] ?? '';
@@ -174,22 +175,42 @@ export function FinalCard({
             marginBottom: 6,
           }}
         >
-          Pledges minted · live
+          Public record · live
         </div>
         <div
           style={{
-            fontFamily: FONTS.SERIF,
-            fontSize: 38,
-            lineHeight: 1,
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            justifyContent: 'center',
+            gap: 10,
+            flexWrap: 'wrap',
+            fontFamily: FONTS.MONO,
+            fontSize: isDesktop ? 16 : 13,
+            lineHeight: 1.4,
             color: accent.hex,
-            letterSpacing: '-0.02em',
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
             fontVariantNumeric: 'tabular-nums',
             textShadow: `0 0 30px ${accent.glow}`,
           }}
         >
-          {mintedPledgeCount.toLocaleString()}
+          <Link
+            href="/pledges"
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            {pledgeCounts.total.toLocaleString()} Pledges
+          </Link>
+          <span style={{ color: PALETTE.ASH_DIMMER }}>·</span>
+          <Link
+            href="/ledger"
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            {pledgeCounts.minted.toLocaleString()} On-chain
+          </Link>
         </div>
-        {userPledge?.minted && (
+        {userPledge && (
           <div
             style={{
               marginTop: 6,
