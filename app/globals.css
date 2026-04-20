@@ -947,6 +947,18 @@ body.ew-story-locked {
     z-index: 30 !important;
   }
 
+  .ew-stage.ew-phone-shell [data-card="final"] .ew-share-button {
+    border-color: rgba(230, 214, 190, 0.14) !important;
+    background: rgba(230, 214, 190, 0.06) !important;
+    background-origin: initial;
+    background-clip: border-box;
+    box-shadow: none;
+  }
+
+  .ew-stage.ew-phone-shell [data-card="final"] .ew-share-button::before {
+    display: none;
+  }
+
   .ew-stage.ew-phone-shell .ew-card-footer {
     bottom: var(--ew-story-footer-bottom) !important;
     z-index: 30 !important;
