@@ -91,9 +91,19 @@ export function buildPhantomBrowseUrl(targetUrl: string, refUrl?: string) {
   return `${PHANTOM_BROWSE_BASE_URL}/${encodeURIComponent(targetUrl)}?ref=${encodeURIComponent(ref)}`;
 }
 
-export function openCurrentPageInPhantom(hash = "pledge") {
+export function openCurrentPageInPhantom(
+  hash = "pledge",
+  searchParams: Record<string, string | null | undefined> = {},
+) {
   if (typeof window === "undefined") return;
   const target = new URL(window.location.href);
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value === null || value === undefined) {
+      target.searchParams.delete(key);
+    } else {
+      target.searchParams.set(key, value);
+    }
+  }
   target.hash = hash;
   window.location.assign(buildPhantomBrowseUrl(target.toString()));
 }
