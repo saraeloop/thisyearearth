@@ -573,16 +573,16 @@ body.ew-story-locked {
 [data-card="final"] .ew-share-button {
   position: relative;
   isolation: isolate;
-  overflow: visible;
+  overflow: hidden;
 }
 
 [data-card="final"] .ew-share-button::before {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: 0;
   z-index: 0;
   border-radius: inherit;
-  padding: 2px;
+  padding: 1.5px;
   background: linear-gradient(90deg, #8aa0ff, #ff7a7a, #ffd166, #8bdc8b);
   opacity: 0.82;
   pointer-events: none;
@@ -595,6 +595,11 @@ body.ew-story-locked {
     linear-gradient(#000 0 0);
   mask-composite: exclude;
   animation: ew-final-share-rainbow 2.4s linear infinite;
+}
+
+[data-card="final"] .ew-share-button > * {
+  position: relative;
+  z-index: 1;
 }
 
 [data-card="final"] .ew-share-button:hover,
