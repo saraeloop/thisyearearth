@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { PALETTE, FONTS, ACCENTS } from "@/constants/colors";
 import type { CardCommonProps, Location, Pledge } from "@/types";
 import { CardShell } from "./CardShell";
-import { MintedReceipt } from "./MintedReceipt";
+import { PledgeReceipt } from "./PledgeReceipt";
 import { MintButton } from "@/components/ui/MintButton";
 import { useMintPledge } from "@/hooks/usePledge";
 import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
@@ -41,10 +41,10 @@ export function PledgeCard({
   const [name, setName] = useState(userPledge?.name ?? "");
   const [whereFrom, setWhereFrom] = useState(userPledge?.country ?? "");
   const [writing, setWriting] = useState(false);
-  const minted = !!userPledge?.minted;
   const { mint, record, minting, error } = useMintPledge();
   const isDesktop = useMediaMin(1024);
   const isPhone = useMediaMax(767);
+  const hasRecordedPledge = !!userPledge;
 
   const pledgeText = useMemo(() => {
     if (writing) return custom;
@@ -91,7 +91,6 @@ export function PledgeCard({
         country: result.country ?? (whereFrom.trim() || null),
         minted: false,
       });
-      onNext();
     }
   };
 
@@ -103,9 +102,9 @@ export function PledgeCard({
       onNext={onNext}
       onShare={onShare}
       clickable={false}
-      hideNext={!minted}
+      hideNext={!hasRecordedPledge}
     >
-      {!minted ? (
+      {!hasRecordedPledge ? (
         <>
           <div
             style={{
@@ -445,14 +444,14 @@ export function PledgeCard({
           </div>
         </>
       ) : (
-        <MintedReceipt
+        <PledgeReceipt
           accent={accent}
           pledge={
             userPledge?.custom ??
             PRESETS.find((p) => p.id === userPledge?.choice)?.label ??
             "a small thing"
           }
-          txHash={userPledge?.txHash ?? "………"}
+          txHash={userPledge?.txHash}
           onNext={onNext}
         />
       )}

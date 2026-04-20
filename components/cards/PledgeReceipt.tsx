@@ -5,14 +5,19 @@ import { PALETTE, FONTS } from "@/constants/colors";
 import type { Accent } from "@/types";
 import { stampRotate } from "@/constants/variants";
 
-type MintedReceiptProps = {
+type PledgeReceiptProps = {
   accent: Accent;
   pledge: string;
-  txHash: string;
+  txHash?: string | null;
   onNext: () => void;
 };
 
-export function MintedReceipt({ accent, pledge, txHash, onNext }: MintedReceiptProps) {
+export function PledgeReceipt({
+  accent,
+  pledge,
+  txHash,
+  onNext,
+}: PledgeReceiptProps) {
   return (
     <div
       style={{
@@ -109,12 +114,14 @@ export function MintedReceipt({ accent, pledge, txHash, onNext }: MintedReceiptP
           fontSize: 9,
           letterSpacing: "0.2em",
           color: PALETTE.ASH_DIMMER,
+          textTransform: "uppercase",
         }}
       >
-        TX · {txHash}
+        {txHash ? `TX · ${txHash}` : "Public record"}
       </div>
 
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           onNext();
