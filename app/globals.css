@@ -572,24 +572,34 @@ body.ew-story-locked {
 
 [data-card="final"] .ew-share-button {
   position: relative;
+  isolation: isolate;
   overflow: visible;
-  box-shadow: 0 0 18px rgba(77, 201, 255, 0.14);
 }
 
 [data-card="final"] .ew-share-button::before {
   content: "";
   position: absolute;
-  inset: -2px;
-  z-index: -1;
+  inset: -1px;
+  z-index: 0;
   border-radius: inherit;
+  padding: 2px;
   background: linear-gradient(90deg, #8aa0ff, #ff7a7a, #ffd166, #8bdc8b);
   opacity: 0.82;
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
   animation: ew-final-share-rainbow 2.4s linear infinite;
 }
 
 [data-card="final"] .ew-share-button:hover,
 [data-card="final"] .ew-share-button:focus-visible {
-  box-shadow: 0 0 22px rgba(230, 214, 190, 0.16);
+  box-shadow: 0 0 18px rgba(230, 214, 190, 0.12);
 }
 
 [data-card="final"] .ew-share-button:hover::before,
