@@ -5,7 +5,11 @@ import {
   initializeClient,
   type DynamicClient,
 } from "@dynamic-labs-sdk/client";
-import { addPhantomRedirectSolanaExtension } from "@dynamic-labs-sdk/solana";
+import {
+  addPhantomRedirectSolanaExtension,
+  completePhantomRedirect,
+  detectPhantomRedirect,
+} from "@dynamic-labs-sdk/solana";
 import { SOLANA_RPC_URL } from "./mint";
 
 const DYNAMIC_ENVIRONMENT_ID =
@@ -19,6 +23,16 @@ let dynamicClientInitialized = false;
 function createClient() {
   return createDynamicClient({
     autoInitialize: false,
+    coreConfig: {
+      openDeeplink: async (url) => {
+        const deeplink = new URL(url);
+        console.info("[dynamic:phantom:open]", {
+          host: deeplink.host,
+          path: deeplink.pathname,
+        });
+        window.location.assign(url);
+      },
+    },
     environmentId: DYNAMIC_ENVIRONMENT_ID,
     metadata: {
       name: "thisyear.earth",
@@ -54,14 +68,24 @@ export function getDynamicClient() {
 export function ensureDynamicClientReady() {
   if (!dynamicClientReady) {
     const client = getDynamicClient();
+    const currentUrl = new URL(window.location.href);
     dynamicClientReady = addPhantomRedirectSolanaExtension(
       {
+        disableAutoRedirectCompletion: true,
         onCloseTab: () => window.close(),
-        url: new URL(window.location.href),
+        url: currentUrl,
       },
       client,
     )
       .then(() => {
+        void detectPhantomRedirect({ url: currentUrl }, client)
+          .then((isRedirect) => {
+            if (!isRedirect) return;
+            return completePhantomRedirect({ url: currentUrl }, client);
+          })
+          .catch((error) => {
+            console.error("[dynamic:phantom-redirect:complete]", error);
+          });
         if (!dynamicClientInitialized) {
           dynamicClientInitialized = true;
           void initializeClient(client).catch((error) => {
