@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   connectWithWalletProvider,
   getWalletAccounts,
+  onEvent,
   type DynamicClient,
   type WalletAccount,
 } from "@dynamic-labs-sdk/client";
@@ -12,13 +13,16 @@ import {
   signAndSendTransaction,
   type SolanaWalletAccount,
 } from "@dynamic-labs-sdk/solana";
-import { Transaction } from "@solana/web3.js";
+import { Connection, Transaction } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { ACTIVE_STORAGE_KEY, CARD_IDS } from "@/constants/cards";
 import type { Pledge } from "@/types";
 import type { PledgeMetadata } from "@/hooks/usePledge";
 import type { PledgeMintMetadata } from "@/lib/solana/mint";
-import { ensureDynamicClientReady } from "@/lib/solana/dynamicClient";
+import {
+  completePendingPhantomRedirect,
+  ensureDynamicClientReady,
+} from "@/lib/solana/dynamicClient";
 import {
   buildPledgeMintMetadataFromSignature,
   confirmPledgeMintSignature,
@@ -31,11 +35,30 @@ import {
   writePendingMobileMint,
   type PendingDynamicMobileMint,
 } from "@/lib/solana/dynamicMobileMintIntent";
-import { SOLANA_NETWORK } from "@/lib/solana/mint";
+import { SOLANA_NETWORK, SOLANA_RPC_URL } from "@/lib/solana/mint";
+import { encodeBase58 } from "@/lib/solana/signature";
 
 const PHANTOM_SOLANA_DEEPLINK_PROVIDER_KEY = "phantomsol:deepLink";
 const PHANTOM_LAUNCH_TIMEOUT_MS = 12_000;
 const PHANTOM_RETURN_RESULT_TIMEOUT_MS = 20_000;
+
+declare global {
+  interface DynamicEvents {
+    phantomRedirectConnectionComplete: (args: {
+      address: string;
+      publicKey: string;
+    }) => void;
+    phantomRedirectConnectionError: (args: { error: unknown }) => void;
+    phantomRedirectSignAndSendTransactionComplete: (args: {
+      signature: string;
+    }) => void;
+    phantomRedirectSignAndSendTransactionError: (args: { error: unknown }) => void;
+    phantomRedirectSignTransactionComplete: (args: {
+      transaction: string;
+    }) => void;
+    phantomRedirectSignTransactionError: (args: { error: unknown }) => void;
+  }
+}
 
 type DynamicSignAndSendInput = Parameters<typeof signAndSendTransaction>[0];
 type DynamicMobileMintStatus =
@@ -64,6 +87,12 @@ type UseDynamicMobileMintOptions = {
     draft: Pick<PendingDynamicMobileMint, "choice" | "custom" | "metadata">,
   ) => void;
 };
+
+const BASE58_ALPHABET =
+  "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const BASE58_LOOKUP = new Map(
+  [...BASE58_ALPHABET].map((character, index) => [character, index]),
+);
 
 function keepMobileStoryOnPledgeCard() {
   if (typeof window === "undefined") return;
@@ -110,6 +139,62 @@ function deserializeTransaction(serializedTransaction: string) {
   return Transaction.from(Buffer.from(serializedTransaction, "base64"));
 }
 
+function decodeBase58(value: string) {
+  if (!value) return new Uint8Array();
+
+  const bytes = [0];
+  for (const character of value) {
+    const digit = BASE58_LOOKUP.get(character);
+    if (digit === undefined) {
+      throw new Error("Phantom returned an invalid signed transaction.");
+    }
+
+    let carry = digit;
+    for (let i = 0; i < bytes.length; i += 1) {
+      const current = bytes[i] * 58 + carry;
+      bytes[i] = current & 0xff;
+      carry = current >> 8;
+    }
+    while (carry > 0) {
+      bytes.push(carry & 0xff);
+      carry >>= 8;
+    }
+  }
+
+  for (const character of value) {
+    if (character === BASE58_ALPHABET[0]) bytes.push(0);
+    else break;
+  }
+
+  return new Uint8Array(bytes.reverse());
+}
+
+function deserializeSignedTransactionFromBase58(transaction: string) {
+  return Transaction.from(Buffer.from(decodeBase58(transaction)));
+}
+
+function firstTransactionSignature(transaction: Transaction) {
+  const signature = transaction.signatures[0]?.signature;
+  return signature ? encodeBase58(signature) : null;
+}
+
+function isAlreadyProcessedError(error: unknown) {
+  return getErrorMessage(error).toLowerCase().includes("already been processed");
+}
+
+function walletAccountFromAddress(address: string): SolanaWalletAccount {
+  return {
+    address,
+    addressesWithTypes: [{ address }],
+    chain: "SOL",
+    hardwareWalletVendor: undefined,
+    id: `SOL:${address}`,
+    lastSelectedAt: null,
+    verifiedCredentialId: null,
+    walletProviderKey: PHANTOM_SOLANA_DEEPLINK_PROVIDER_KEY,
+  } as SolanaWalletAccount;
+}
+
 function walletAccountFromPending(
   pending: PendingDynamicMobileMint,
 ): SolanaWalletAccount {
@@ -117,16 +202,7 @@ function walletAccountFromPending(
     throw new Error("Phantom wallet must reconnect before signing.");
   }
 
-  return {
-    address: pending.walletAddress,
-    addressesWithTypes: [{ address: pending.walletAddress }],
-    chain: "SOL",
-    hardwareWalletVendor: undefined,
-    id: `SOL:${pending.walletAddress}`,
-    lastSelectedAt: null,
-    verifiedCredentialId: null,
-    walletProviderKey: PHANTOM_SOLANA_DEEPLINK_PROVIDER_KEY,
-  } as SolanaWalletAccount;
+  return walletAccountFromAddress(pending.walletAddress);
 }
 
 function waitForPhantomRedirect<T>(operation: Promise<T>, label: string) {
@@ -217,6 +293,7 @@ export function useDynamicMobileMint({
   );
   const [error, setError] = useState<string | null>(null);
   const processingRef = useRef(false);
+  const redirectProcessingRef = useRef(false);
   const processedTxHashesRef = useRef<Set<string>>(new Set());
 
   const completeMint = useCallback(
@@ -262,6 +339,32 @@ export function useDynamicMobileMint({
       }
     },
     [onComplete, saveMinted],
+  );
+
+  const completeSignedTransaction = useCallback(
+    async (signedTransactionBase58: string, pending: PendingDynamicMobileMint) => {
+      const signedTransaction =
+        deserializeSignedTransactionFromBase58(signedTransactionBase58);
+      const connection = new Connection(SOLANA_RPC_URL, "confirmed");
+
+      let txHash: string;
+      try {
+        txHash = await connection.sendRawTransaction(signedTransaction.serialize(), {
+          preflightCommitment: "confirmed",
+          maxRetries: 3,
+        });
+      } catch (error) {
+        const signature = firstTransactionSignature(signedTransaction);
+        if (signature && isAlreadyProcessedError(error)) {
+          txHash = signature;
+        } else {
+          throw error;
+        }
+      }
+
+      await completeMint(txHash, pending);
+    },
+    [completeMint],
   );
 
   const preparePendingForSignature = useCallback(
@@ -320,6 +423,134 @@ export function useDynamicMobileMint({
     },
     [completeMint],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    let cleanupHandlers: Array<() => void> = [];
+
+    const handleRedirectError = (error: unknown) => {
+      if (cancelled) return;
+      clearPendingMobileMint();
+      setMinting(false);
+      setStatus("idle");
+      setError(getUserFacingMintError(error));
+    };
+
+    void ensureDynamicClientReady()
+      .then((client) => {
+        if (cancelled) return;
+
+        cleanupHandlers = [
+          onEvent(
+            {
+              event: "phantomRedirectConnectionComplete",
+              listener: ({ address }) => {
+                const pending = readPendingMobileMint();
+                if (!pending || pending.stage !== "connect") return;
+                if (processingRef.current) return;
+                if (redirectProcessingRef.current) return;
+
+                redirectProcessingRef.current = true;
+                setMinting(true);
+                setError(null);
+                void preparePendingForSignature(
+                  walletAccountFromAddress(address),
+                  pending,
+                )
+                  .catch(handleRedirectError)
+                  .finally(() => {
+                    redirectProcessingRef.current = false;
+                    setMinting(false);
+                  });
+              },
+            },
+            client,
+          ),
+          onEvent(
+            {
+              event: "phantomRedirectConnectionError",
+              listener: ({ error }) => {
+                if (!processingRef.current) handleRedirectError(error);
+              },
+            },
+            client,
+          ),
+          onEvent(
+            {
+              event: "phantomRedirectSignAndSendTransactionComplete",
+              listener: ({ signature }) => {
+                const pending = readPendingMobileMint();
+                if (!pending || pending.stage !== "sign") return;
+                if (processingRef.current) return;
+                if (redirectProcessingRef.current) return;
+
+                redirectProcessingRef.current = true;
+                setMinting(true);
+                setError(null);
+                void completeMint(signature, pending)
+                  .catch(handleRedirectError)
+                  .finally(() => {
+                    redirectProcessingRef.current = false;
+                    setMinting(false);
+                  });
+              },
+            },
+            client,
+          ),
+          onEvent(
+            {
+              event: "phantomRedirectSignAndSendTransactionError",
+              listener: ({ error }) => {
+                if (!processingRef.current) handleRedirectError(error);
+              },
+            },
+            client,
+          ),
+          onEvent(
+            {
+              event: "phantomRedirectSignTransactionComplete",
+              listener: ({ transaction }) => {
+                const pending = readPendingMobileMint();
+                if (!pending || pending.stage !== "sign") return;
+                if (processingRef.current) return;
+                if (redirectProcessingRef.current) return;
+
+                redirectProcessingRef.current = true;
+                setMinting(true);
+                setError(null);
+                void completeSignedTransaction(transaction, pending)
+                  .catch(handleRedirectError)
+                  .finally(() => {
+                    redirectProcessingRef.current = false;
+                    setMinting(false);
+                  });
+              },
+            },
+            client,
+          ),
+          onEvent(
+            {
+              event: "phantomRedirectSignTransactionError",
+              listener: ({ error }) => {
+                if (!processingRef.current) handleRedirectError(error);
+              },
+            },
+            client,
+          ),
+        ];
+
+        return completePendingPhantomRedirect(client);
+      })
+      .catch((error) => {
+        console.error("[dynamic:phantom-redirect:complete]", error);
+        handleRedirectError(error);
+      });
+
+    return () => {
+      cancelled = true;
+      cleanupHandlers.forEach((cleanup) => cleanup());
+    };
+  }, [completeMint, completeSignedTransaction, preparePendingForSignature]);
 
   const startMobileMint = useCallback(
     async (input: StartDynamicMobileMintInput) => {

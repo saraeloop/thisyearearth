@@ -20,6 +20,10 @@ let dynamicClient: DynamicClient | null = null;
 let dynamicClientReady: Promise<DynamicClient> | null = null;
 let dynamicClientInitialized = false;
 
+function getCurrentUrl() {
+  return new URL(window.location.href);
+}
+
 function createClient() {
   return createDynamicClient({
     autoInitialize: false,
@@ -69,7 +73,7 @@ export function getDynamicClient() {
 export function ensureDynamicClientReady() {
   if (!dynamicClientReady) {
     const client = getDynamicClient();
-    const currentUrl = new URL(window.location.href);
+    const currentUrl = getCurrentUrl();
     dynamicClientReady = addPhantomRedirectSolanaExtension(
       {
         disableAutoRedirectCompletion: true,
@@ -79,14 +83,6 @@ export function ensureDynamicClientReady() {
       client,
     )
       .then(() => {
-        void detectPhantomRedirect({ url: currentUrl }, client)
-          .then((isRedirect) => {
-            if (!isRedirect) return;
-            return completePhantomRedirect({ url: currentUrl }, client);
-          })
-          .catch((error) => {
-            console.error("[dynamic:phantom-redirect:complete]", error);
-          });
         if (!dynamicClientInitialized) {
           dynamicClientInitialized = true;
           void initializeClient(client).catch((error) => {
@@ -105,8 +101,10 @@ export function ensureDynamicClientReady() {
   return dynamicClientReady;
 }
 
-if (typeof window !== "undefined") {
-  void ensureDynamicClientReady().catch((error) => {
-    console.error("[dynamic:phantom-redirect:init]", error);
-  });
+export async function completePendingPhantomRedirect(client: DynamicClient) {
+  const currentUrl = getCurrentUrl();
+  const isRedirect = await detectPhantomRedirect({ url: currentUrl }, client);
+  if (!isRedirect) return false;
+  await completePhantomRedirect({ url: currentUrl }, client);
+  return true;
 }
