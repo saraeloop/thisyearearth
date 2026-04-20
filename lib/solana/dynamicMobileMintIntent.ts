@@ -1,4 +1,5 @@
 import type { PledgeMintConfirmation } from "./wallet";
+import { SOLANA_NETWORK, type SolanaNetwork } from "./mint";
 
 export const PENDING_MOBILE_MINT_KEY =
   "thisyearearth:pending-dynamic-mobile-mint";
@@ -18,6 +19,7 @@ type PendingPledgeMetadata = {
 
 export type PendingDynamicMobileMint = {
   version: 1;
+  network: SolanaNetwork;
   stage: "connect" | "sign" | "saving";
   pledgeText: string;
   metadata: PendingPledgeMetadata;
@@ -72,6 +74,7 @@ export function readPendingMobileMint(
     const stage = parsed.stage;
     if (
       parsed.version !== 1 ||
+      parsed.network !== SOLANA_NETWORK ||
       (stage !== "connect" && stage !== "sign" && stage !== "saving") ||
       typeof parsed.pledgeText !== "string" ||
       !parsed.pledgeText.trim() ||
@@ -89,6 +92,7 @@ export function readPendingMobileMint(
 
     return {
       version: 1,
+      network: SOLANA_NETWORK,
       stage,
       pledgeText: parsed.pledgeText,
       metadata: parsed.metadata ?? {},

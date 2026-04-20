@@ -10,6 +10,7 @@ import {
   writePendingMobileMint,
   type PendingDynamicMobileMint,
 } from "../lib/solana/dynamicMobileMintIntent";
+import { SOLANA_NETWORK } from "../lib/solana/mint";
 
 class MemoryStorage implements Pick<Storage, "getItem" | "setItem" | "removeItem"> {
   private values = new Map<string, string>();
@@ -34,6 +35,7 @@ function makePending(
 ): PendingDynamicMobileMint {
   return {
     version: 1,
+    network: SOLANA_NETWORK,
     stage: "connect",
     pledgeText: "Vote climate",
     metadata: {
@@ -61,6 +63,20 @@ test("pending mobile mint intent round-trips through storage", () => {
   assert.equal(stored?.choice, pending.choice);
   assert.equal(stored?.custom, pending.custom);
   assert.equal(stored?.createdAt, pending.createdAt);
+});
+
+test("pending mobile mint intent from another Solana network is cleared", () => {
+  const storage = new MemoryStorage();
+  storage.setItem(
+    PENDING_MOBILE_MINT_KEY,
+    JSON.stringify({
+      ...makePending(),
+      network: SOLANA_NETWORK === "testnet" ? "devnet" : "testnet",
+    }),
+  );
+
+  assert.equal(readPendingMobileMint({ storage, now: NOW }), null);
+  assert.equal(storage.getItem(PENDING_MOBILE_MINT_KEY), null);
 });
 
 test("expired pending mobile mint intent is cleared and ignored", () => {

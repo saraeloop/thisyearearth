@@ -10,7 +10,7 @@ import {
   completePhantomRedirect,
   detectPhantomRedirect,
 } from "@dynamic-labs-sdk/solana";
-import { SOLANA_RPC_URL } from "./mint";
+import { SOLANA_NETWORK, SOLANA_RPC_URL } from "./mint";
 
 const DYNAMIC_ENVIRONMENT_ID =
   process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
@@ -43,6 +43,7 @@ function createClient() {
         if (networkData.chain !== "SOL") return networkData;
         return {
           ...networkData,
+          cluster: SOLANA_NETWORK,
           rpcUrls: {
             ...networkData.rpcUrls,
             http: [SOLANA_RPC_URL],
