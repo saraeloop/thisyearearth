@@ -14,6 +14,7 @@ const DYNAMIC_ENVIRONMENT_ID =
 
 let dynamicClient: DynamicClient | null = null;
 let dynamicClientReady: Promise<DynamicClient> | null = null;
+let dynamicClientInitialized = false;
 
 function createClient() {
   return createDynamicClient({
@@ -60,8 +61,14 @@ export function ensureDynamicClientReady() {
       },
       client,
     )
-      .then(async () => {
-        await initializeClient(client);
+      .then(() => {
+        if (!dynamicClientInitialized) {
+          dynamicClientInitialized = true;
+          void initializeClient(client).catch((error) => {
+            dynamicClientInitialized = false;
+            console.error("[dynamic:init]", error);
+          });
+        }
         return client;
       })
       .catch((error) => {
