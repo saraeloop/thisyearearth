@@ -1,23 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
-  useDynamicContext,
-  usePhantomRedirectEvents,
-  useWalletOptions,
-} from "@dynamic-labs/sdk-react-core";
-import { isSolanaWallet } from "@dynamic-labs/solana";
-import type { Wallet } from "@dynamic-labs/wallet-connector-core";
+  connectWithWalletProvider,
+  getWalletAccounts,
+  type DynamicClient,
+  type WalletAccount,
+} from "@dynamic-labs-sdk/client";
+import {
+  signAndSendTransaction,
+  type SolanaWalletAccount,
+} from "@dynamic-labs-sdk/solana";
 import { ACTIVE_STORAGE_KEY, CARD_IDS } from "@/constants/cards";
 import type { Pledge } from "@/types";
 import type { PledgeMetadata } from "@/hooks/usePledge";
 import type { PledgeMintMetadata } from "@/lib/solana/mint";
+import { ensureDynamicClientReady } from "@/lib/solana/dynamicClient";
 import {
   buildPledgeMintMetadataFromSignature,
   confirmPledgeMintSignature,
   preparePledgeMintTransaction,
 } from "@/lib/solana/wallet";
-import { normalizeWalletSignature } from "@/lib/solana/signature";
 import {
   clearPendingMobileMint,
   markPendingMobileMintSaving,
@@ -25,6 +28,10 @@ import {
   writePendingMobileMint,
   type PendingDynamicMobileMint,
 } from "@/lib/solana/dynamicMobileMintIntent";
+
+const PHANTOM_SOLANA_DEEPLINK_PROVIDER_KEY = "phantomsol:deepLink";
+
+type DynamicSignAndSendInput = Parameters<typeof signAndSendTransaction>[0];
 
 type StartDynamicMobileMintInput = {
   pledgeText: string;
@@ -45,12 +52,6 @@ type UseDynamicMobileMintOptions = {
   ) => void;
 };
 
-type DynamicSolanaSigner = {
-  signAndSendTransaction: (
-    transaction: unknown,
-  ) => Promise<{ signature: string | Uint8Array | number[] }>;
-};
-
 function keepMobileStoryOnPledgeCard() {
   if (typeof window === "undefined") return;
   const pledgeIndex = CARD_IDS.findIndex((id) => id === "pledge");
@@ -59,35 +60,46 @@ function keepMobileStoryOnPledgeCard() {
   }
 }
 
-function getPhantomWalletKey(
-  walletOptions: ReturnType<typeof useWalletOptions>["walletOptions"],
-) {
-  return (
-    walletOptions.find((option) => {
-      const key = option.key.toLowerCase();
-      const name = option.name.toLowerCase();
-      const group = option.group?.toLowerCase() ?? "";
-      const supportsSolana =
-        option.supportedChains.includes("SOL") ||
-        option.supportedChains.includes("SOLANA") ||
-        option.chain === "SOL";
+function isSolanaWalletAccount(
+  walletAccount: WalletAccount | null | undefined,
+): walletAccount is SolanaWalletAccount {
+  return walletAccount?.chain === "SOL" && !!walletAccount.address;
+}
 
-      return (
-        supportsSolana &&
-        (key.includes("phantom") ||
-          name.includes("phantom") ||
-          group.includes("phantom"))
-      );
-    })?.key ?? null
-  );
+function getConnectedSolanaWalletAccount(client: DynamicClient) {
+  return getWalletAccounts(client).find(isSolanaWalletAccount) ?? null;
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "";
+}
+
+function getUserFacingMintError(error: unknown) {
+  const message = getErrorMessage(error);
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes("reject") ||
+    normalized.includes("cancel") ||
+    normalized.includes("user denied")
+  ) {
+    return "Mint cancelled.";
+  }
+  if (
+    normalized.includes("no wallet provider") ||
+    normalized.includes("no wallet found") ||
+    normalized.includes("wallet provider")
+  ) {
+    return "Phantom mobile redirect is unavailable. Make sure Phantom is installed and try again.";
+  }
+  return message || "Open Phantom to approve the mint.";
 }
 
 export function useDynamicMobileMint({
   saveMinted,
   onComplete,
 }: UseDynamicMobileMintOptions) {
-  const { primaryWallet, sdkHasLoaded } = useDynamicContext();
-  const { selectWalletOption, walletOptions } = useWalletOptions();
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const processingRef = useRef(false);
@@ -100,6 +112,7 @@ export function useDynamicMobileMint({
       if (!pending.walletAddress || !pending.memo || !pending.confirmation) {
         throw new Error("Mint result returned without the pending pledge details.");
       }
+
       const currentPending = readPendingMobileMint();
       if (currentPending?.stage === "saving" && currentPending.txHash === txHash) {
         return;
@@ -135,48 +148,45 @@ export function useDynamicMobileMint({
   );
 
   const signPendingWithWallet = useCallback(
-    async (wallet: Wallet, pending: PendingDynamicMobileMint) => {
-      if (processingRef.current) return;
-      processingRef.current = true;
+    async (
+      walletAccount: SolanaWalletAccount,
+      pending: PendingDynamicMobileMint,
+    ) => {
+      const client = await ensureDynamicClientReady();
+      const prepared = await preparePledgeMintTransaction(
+        pending.pledgeText,
+        walletAccount.address,
+      );
+      const signingPending: PendingDynamicMobileMint = {
+        ...pending,
+        stage: "sign",
+        walletAddress: prepared.walletAddress,
+        memo: prepared.memo,
+        confirmation: prepared.confirmation,
+      };
+      writePendingMobileMint(signingPending);
 
-      try {
-        if (!isSolanaWallet(wallet)) {
-          throw new Error("Connect Phantom on Solana to mint.");
-        }
-
-        const walletAddress = wallet.address;
-        if (!walletAddress) throw new Error("Wallet connection failed.");
-
-        const prepared = await preparePledgeMintTransaction(
-          pending.pledgeText,
-          walletAddress,
-        );
-        const signingPending: PendingDynamicMobileMint = {
-          ...pending,
-          stage: "sign",
-          walletAddress: prepared.walletAddress,
-          memo: prepared.memo,
-          confirmation: prepared.confirmation,
-        };
-        writePendingMobileMint(signingPending);
-
-        const signer = (await wallet.getSigner()) as DynamicSolanaSigner;
-        const result = await signer.signAndSendTransaction(prepared.transaction);
-        const txHash = normalizeWalletSignature(result.signature);
-        await completeMint(txHash, signingPending);
-      } finally {
-        processingRef.current = false;
-      }
+      const { signature } = await signAndSendTransaction(
+        {
+          options: {
+            maxRetries: 3,
+            preflightCommitment: "confirmed",
+          },
+          transaction:
+            prepared.transaction as unknown as DynamicSignAndSendInput["transaction"],
+          walletAccount,
+        },
+        client,
+      );
+      await completeMint(signature, signingPending);
     },
     [completeMint],
   );
 
   const startMobileMint = useCallback(
     async (input: StartDynamicMobileMintInput) => {
-      if (!sdkHasLoaded) {
-        setError("Wallet connection is still loading. Try again.");
-        return;
-      }
+      if (processingRef.current) return;
+      processingRef.current = true;
 
       setMinting(true);
       setError(null);
@@ -194,94 +204,33 @@ export function useDynamicMobileMint({
       writePendingMobileMint(pending);
 
       try {
-        if (primaryWallet) {
-          await signPendingWithWallet(primaryWallet, pending);
-          return;
+        const client = await ensureDynamicClientReady();
+        const existingWalletAccount = getConnectedSolanaWalletAccount(client);
+        const walletAccount =
+          existingWalletAccount ??
+          (await connectWithWalletProvider(
+            {
+              addToDynamicWalletAccounts: true,
+              walletProviderKey: PHANTOM_SOLANA_DEEPLINK_PROVIDER_KEY,
+            },
+            client,
+          ));
+
+        if (!isSolanaWalletAccount(walletAccount)) {
+          throw new Error("Phantom did not return a Solana wallet.");
         }
 
-        const phantomKey = getPhantomWalletKey(walletOptions);
-        if (phantomKey) {
-          const selectedWallet = await selectWalletOption(
-            phantomKey,
-            false,
-            true,
-            "SOL",
-          );
-          if (selectedWallet) {
-            await signPendingWithWallet(selectedWallet, pending);
-            return;
-          }
-        }
-
-        setError(
-          "Phantom mobile redirect is not available. Enable Phantom for Solana in Dynamic.",
-        );
-      } catch (e) {
-        const message = e instanceof Error ? e.message : "";
-        if (message.includes("No wallet found with key")) {
-          setError(
-            "Phantom mobile redirect is not available. Enable Phantom for Solana in Dynamic.",
-          );
-        } else {
-          setError(message || "Open Phantom to approve the mint.");
-        }
-      } finally {
-        setMinting(false);
-      }
-    },
-    [
-      primaryWallet,
-      sdkHasLoaded,
-      selectWalletOption,
-      signPendingWithWallet,
-      walletOptions,
-    ],
-  );
-
-  useEffect(() => {
-    if (!primaryWallet || processingRef.current) return;
-    const pending = readPendingMobileMint();
-    if (!pending || pending.stage !== "connect") return;
-
-    void Promise.resolve()
-      .then(async () => {
-        setMinting(true);
-        setError(null);
-        await signPendingWithWallet(primaryWallet, pending);
-      })
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Mint failed.");
-      })
-      .finally(() => {
-        setMinting(false);
-      });
-  }, [primaryWallet, signPendingWithWallet]);
-
-  usePhantomRedirectEvents({
-    onSignAndSendTransaction: ({ signature, errorCode, errorMessage }) => {
-      const pending = readPendingMobileMint();
-      if (!pending || pending.stage === "saving") return;
-
-      if (errorCode || errorMessage || !signature) {
+        await signPendingWithWallet(walletAccount, pending);
+      } catch (error) {
         clearPendingMobileMint();
-        setError(errorMessage || errorCode || "Mint cancelled.");
+        setError(getUserFacingMintError(error));
+      } finally {
+        processingRef.current = false;
         setMinting(false);
-        return;
       }
-
-      processingRef.current = true;
-      setMinting(true);
-      setError(null);
-      void completeMint(normalizeWalletSignature(signature), pending)
-        .catch((e) => {
-          setError(e instanceof Error ? e.message : "Mint failed.");
-        })
-        .finally(() => {
-          processingRef.current = false;
-          setMinting(false);
-        });
     },
-  });
+    [signPendingWithWallet],
+  );
 
   return {
     startMobileMint,
