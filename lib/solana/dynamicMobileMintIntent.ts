@@ -26,6 +26,7 @@ export type PendingDynamicMobileMint = {
   walletAddress?: string;
   memo?: string;
   confirmation?: PledgeMintConfirmation;
+  serializedTransaction?: string;
   txHash?: string;
   createdAt: number;
 };
@@ -97,6 +98,10 @@ export function readPendingMobileMint(
         typeof parsed.walletAddress === "string" ? parsed.walletAddress : undefined,
       memo: typeof parsed.memo === "string" ? parsed.memo : undefined,
       confirmation: parsed.confirmation,
+      serializedTransaction:
+        typeof parsed.serializedTransaction === "string"
+          ? parsed.serializedTransaction
+          : undefined,
       txHash: typeof parsed.txHash === "string" ? parsed.txHash : undefined,
       createdAt: parsed.createdAt,
     };

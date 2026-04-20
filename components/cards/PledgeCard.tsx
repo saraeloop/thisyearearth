@@ -52,6 +52,7 @@ export function PledgeCard({
   const {
     startMobileMint,
     minting: dynamicMinting,
+    status: dynamicMintStatus,
     error: dynamicError,
   } = useDynamicMobileMint({
     saveMinted,
@@ -79,13 +80,26 @@ export function PledgeCard({
   const needsPhantomMobile = walletAvailability === "mobile-no-provider";
   const missingDesktopWallet = walletAvailability === "missing";
   const mintButtonDisabled = !canMint;
+  const readyForMobileSignature = dynamicMintStatus === "ready-to-sign";
   const mintButtonLabel = needsPhantomMobile
-    ? "Open Phantom to mint →"
+    ? readyForMobileSignature
+      ? "Approve in Phantom →"
+      : "Open Phantom to mint →"
     : "Mint to the ledger →";
+  const mintingLabel =
+    dynamicMintStatus === "connecting"
+      ? "Opening Phantom…"
+      : dynamicMintStatus === "preparing"
+        ? "Preparing ledger…"
+        : dynamicMintStatus === "signing"
+          ? "Opening Phantom…"
+          : "Writing to ledger…";
   const mintHint = needsPhantomMobile
-    ? canMint
-      ? "Approve in Phantom, then return here."
-      : "Choose a pledge, then open Phantom to mint."
+    ? readyForMobileSignature
+      ? "Tap once more to approve the Solana transaction in Phantom."
+      : canMint
+        ? "First connect Phantom, then approve the mint."
+        : "Choose a pledge, then open Phantom to mint."
     : missingDesktopWallet
       ? "Install Phantom or Solflare to mint"
       : `Solana ${SOLANA_NETWORK} is optional`;
@@ -451,6 +465,7 @@ export function PledgeCard({
               disabled={mintButtonDisabled || dynamicMinting}
               minting={minting || dynamicMinting}
               label={mintButtonLabel}
+              mintingLabel={mintingLabel}
               onClick={handleMint}
             />
             <button
