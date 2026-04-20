@@ -7,13 +7,12 @@ import { CardShell } from "./CardShell";
 import { PledgeReceipt } from "./PledgeReceipt";
 import { MintButton } from "@/components/ui/MintButton";
 import { useMintPledge } from "@/hooks/usePledge";
+import { useDynamicMobileMint } from "@/hooks/useDynamicMobileMint";
 import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import { SOLANA_NETWORK } from "@/lib/solana/mint";
-import { CARD_IDS } from "@/constants/cards";
 import {
   getWalletProviderAvailability,
-  openCurrentPageInPhantom,
   type WalletProviderAvailability,
 } from "@/lib/solana/wallet";
 
@@ -33,81 +32,6 @@ const PRESETS = [
   { id: "repair", label: "Repair, don't replace" },
 ];
 
-const PHANTOM_PLEDGE_DRAFT_PARAM = "ewPledgeDraft";
-
-type PledgeDraft = {
-  choice: string | null;
-  custom: string;
-  name: string;
-  country: string;
-  writing: boolean;
-  returnUrl: string | null;
-};
-
-function sanitizeDraftString(value: unknown, maxLength: number) {
-  return typeof value === "string" ? value.slice(0, maxLength) : "";
-}
-
-function readPledgeDraftFromUrl(): PledgeDraft | null {
-  if (typeof window === "undefined") return null;
-  const raw = new URL(window.location.href).searchParams.get(
-    PHANTOM_PLEDGE_DRAFT_PARAM,
-  );
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as Partial<PledgeDraft>;
-    const choice =
-      typeof parsed.choice === "string" &&
-      PRESETS.some((preset) => preset.id === parsed.choice)
-        ? parsed.choice
-        : null;
-    const custom = sanitizeDraftString(parsed.custom, PLEDGE_TEXT_MAX_LENGTH);
-    const writing = parsed.writing === true && custom.trim().length > 0;
-    const returnUrl =
-      typeof parsed.returnUrl === "string"
-        ? new URL(parsed.returnUrl, window.location.origin)
-        : null;
-    const safeReturnUrl =
-      returnUrl?.origin === window.location.origin ? returnUrl.toString() : null;
-    return {
-      choice: writing ? null : choice,
-      custom: writing ? custom : "",
-      name: sanitizeDraftString(parsed.name, 80),
-      country: sanitizeDraftString(parsed.country, 80),
-      writing,
-      returnUrl: safeReturnUrl,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function clearPledgeDraftFromUrl() {
-  if (typeof window === "undefined") return;
-  const url = new URL(window.location.href);
-  if (!url.searchParams.has(PHANTOM_PLEDGE_DRAFT_PARAM)) return;
-  url.searchParams.delete(PHANTOM_PLEDGE_DRAFT_PARAM);
-  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-}
-
-function serializePledgeDraft(draft: PledgeDraft) {
-  return JSON.stringify(draft);
-}
-
-function getNextCardId(cardId: (typeof CARD_IDS)[number]) {
-  const currentIndex = CARD_IDS.indexOf(cardId);
-  return CARD_IDS[currentIndex + 1] ?? CARD_IDS[0];
-}
-
-function buildBrowserResumeUrl(currentCardId: (typeof CARD_IDS)[number]) {
-  if (typeof window === "undefined") return null;
-  const url = new URL(window.location.href);
-  url.searchParams.delete(PHANTOM_PLEDGE_DRAFT_PARAM);
-  url.searchParams.set("ewResume", getNextCardId(currentCardId));
-  url.hash = "";
-  return url.toString();
-}
-
 export function PledgeCard({
   active,
   onNext,
@@ -117,21 +41,30 @@ export function PledgeCard({
   userLocation,
   onPledge,
 }: PledgeCardProps) {
-  const [initialDraft] = useState(() =>
-    userPledge ? null : readPledgeDraftFromUrl(),
-  );
-  const [choice, setChoice] = useState<string | null>(
-    userPledge?.choice ?? initialDraft?.choice ?? null,
-  );
-  const [custom, setCustom] = useState(userPledge?.custom ?? initialDraft?.custom ?? "");
-  const [name, setName] = useState(userPledge?.name ?? initialDraft?.name ?? "");
-  const [whereFrom, setWhereFrom] = useState(
-    userPledge?.country ?? initialDraft?.country ?? "",
-  );
-  const [writing, setWriting] = useState(initialDraft?.writing ?? false);
+  const [choice, setChoice] = useState<string | null>(userPledge?.choice ?? null);
+  const [custom, setCustom] = useState(userPledge?.custom ?? "");
+  const [name, setName] = useState(userPledge?.name ?? "");
+  const [whereFrom, setWhereFrom] = useState(userPledge?.country ?? "");
+  const [writing, setWriting] = useState(false);
   const [walletAvailability, setWalletAvailability] =
     useState<WalletProviderAvailability>("missing");
-  const { mint, record, minting, error } = useMintPledge();
+  const { mint, record, saveMinted, minting, error } = useMintPledge();
+  const {
+    startMobileMint,
+    minting: dynamicMinting,
+    error: dynamicError,
+  } = useDynamicMobileMint({
+    saveMinted,
+    onComplete: (result, draft) => {
+      onPledge({
+        ...result,
+        choice: draft.choice,
+        custom: draft.custom,
+        name: result.name ?? draft.metadata.name ?? null,
+        country: result.country ?? draft.metadata.country ?? null,
+      });
+    },
+  });
   const isDesktop = useMediaMin(1024);
   const isPhone = useMediaMax(767);
   const hasRecordedPledge = !!userPledge;
@@ -147,19 +80,15 @@ export function PledgeCard({
   const missingDesktopWallet = walletAvailability === "missing";
   const mintButtonDisabled = !canMint;
   const mintButtonLabel = needsPhantomMobile
-    ? "Open in Phantom →"
+    ? "Open Phantom to mint →"
     : "Mint to the ledger →";
   const mintHint = needsPhantomMobile
     ? canMint
-      ? "Opens Phantom. Then tap mint to finish."
+      ? "Approve in Phantom, then return here."
       : "Choose a pledge, then open Phantom to mint."
     : missingDesktopWallet
       ? "Install Phantom or Solflare to mint"
       : `Solana ${SOLANA_NETWORK} is optional`;
-
-  useEffect(() => {
-    if (initialDraft) clearPledgeDraftFromUrl();
-  }, [initialDraft]);
 
   useEffect(() => {
     const updateWalletAvailability = () => {
@@ -183,15 +112,15 @@ export function PledgeCard({
   const handleMint = async () => {
     if (needsPhantomMobile) {
       if (!canMint) return;
-      openCurrentPageInPhantom("pledge", {
-        [PHANTOM_PLEDGE_DRAFT_PARAM]: serializePledgeDraft({
-          choice: writing ? null : choice,
-          custom: writing ? custom : "",
-          name,
-          country: whereFrom,
-          writing,
-          returnUrl: buildBrowserResumeUrl("pledge"),
-        }),
+      await startMobileMint({
+        pledgeText,
+        metadata: {
+          name: name.trim() || null,
+          country: whereFrom.trim() || null,
+          location: userLocation,
+        },
+        choice: writing ? null : choice,
+        custom: writing ? custom : null,
       });
       return;
     }
@@ -519,21 +448,21 @@ export function PledgeCard({
           >
             <MintButton
               accent={accent}
-              disabled={mintButtonDisabled}
-              minting={minting}
+              disabled={mintButtonDisabled || dynamicMinting}
+              minting={minting || dynamicMinting}
               label={mintButtonLabel}
               onClick={handleMint}
             />
             <button
               type="button"
-              disabled={minting}
+              disabled={minting || dynamicMinting}
               onClick={(e) => {
                 e.stopPropagation();
                 handleSkipMint();
               }}
               style={{
                 all: "unset",
-                cursor: minting ? "not-allowed" : "pointer",
+                cursor: minting || dynamicMinting ? "not-allowed" : "pointer",
                 display: "block",
                 width: "100%",
                 boxSizing: "border-box",
@@ -544,10 +473,12 @@ export function PledgeCard({
                 fontSize: isDesktop ? 10.5 : 9.2,
                 letterSpacing: isDesktop ? "0.22em" : "0.18em",
                 textTransform: "uppercase",
-                color: minting ? PALETTE.ASH_DIMMER : PALETTE.ASH_DIM,
+                color:
+                  minting || dynamicMinting ? PALETTE.ASH_DIMMER : PALETTE.ASH_DIM,
                 fontWeight: 600,
-                opacity: minting ? 0.55 : 1,
-                textShadow: minting ? undefined : `0 0 10px ${accent.glow}`,
+                opacity: minting || dynamicMinting ? 0.55 : 1,
+                textShadow:
+                  minting || dynamicMinting ? undefined : `0 0 10px ${accent.glow}`,
               }}
             >
               Continue without minting →
@@ -565,7 +496,7 @@ export function PledgeCard({
             >
               {mintHint}
             </div>
-            {error && (
+            {(error || dynamicError) && (
               <div
                 role="status"
                 style={{
@@ -579,7 +510,7 @@ export function PledgeCard({
                   color: accent.hex,
                 }}
               >
-                {error}
+                {error ?? dynamicError}
               </div>
             )}
           </div>
@@ -593,7 +524,6 @@ export function PledgeCard({
             "a small thing"
           }
           txHash={userPledge?.txHash}
-          returnHref={initialDraft?.returnUrl ?? null}
           onNext={onNext}
         />
       )}

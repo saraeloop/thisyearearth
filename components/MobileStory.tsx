@@ -40,24 +40,10 @@ function getHashCardIndex() {
   return CARD_IDS.findIndex((id) => id === hashCardId);
 }
 
-function getResumeCardIndex() {
-  if (typeof window === "undefined") return -1;
-  const resumeCardId = new URL(window.location.href).searchParams.get("ewResume");
-  return CARD_IDS.findIndex((id) => id === resumeCardId);
-}
-
 function clearHashFromUrl() {
   if (typeof window === "undefined" || !window.location.hash) return;
   const { pathname, search } = window.location;
   window.history.replaceState(null, "", `${pathname}${search}`);
-}
-
-function clearResumeFromUrl() {
-  if (typeof window === "undefined") return;
-  const url = new URL(window.location.href);
-  if (!url.searchParams.has("ewResume")) return;
-  url.searchParams.delete("ewResume");
-  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 export function MobileStory({ tweaks }: MobileStoryProps) {
@@ -86,13 +72,6 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
       if (hashIndex >= 0) {
         setActive(hashIndex);
         clearHashFromUrl();
-        setRestoredActive(true);
-        return;
-      }
-      const resumeIndex = getResumeCardIndex();
-      if (resumeIndex >= 0) {
-        setActive(resumeIndex);
-        clearResumeFromUrl();
         setRestoredActive(true);
         return;
       }

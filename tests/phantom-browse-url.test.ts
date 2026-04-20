@@ -2,49 +2,28 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  buildPhantomBrowseTargetUrl,
-  buildPhantomBrowseUrl,
-} from "../lib/solana/wallet";
+  SOLANA_MEMO_PROGRAM_ID,
+  SOLANA_NETWORK,
+  getSolanaDevnetExplorerUrl,
+} from "../lib/solana/mint";
+import { buildPledgeMintMetadataFromSignature } from "../lib/solana/wallet";
 
-test("buildPhantomBrowseUrl preserves query params and hash inside the encoded target URL", () => {
-  const targetUrl =
-    "https://thisyear.earth/?utm_source=safari&pledge=repair%20more#pledge";
-  const refUrl = "https://thisyear.earth/?from=mobile share";
+test("buildPledgeMintMetadataFromSignature derives server-checkable mint metadata", () => {
+  const txHash = "2".repeat(88);
+  const walletAddress = "3".repeat(44);
+  const memo = '{"app":"thisyear.earth","type":"earth-pledge"}';
 
-  const deeplink = new URL(buildPhantomBrowseUrl(targetUrl, refUrl));
-
-  assert.equal(deeplink.origin, "https://phantom.app");
-  assert.equal(deeplink.pathname, `/ul/browse/${encodeURIComponent(targetUrl)}`);
-  assert.equal(deeplink.searchParams.get("ref"), refUrl);
-});
-
-test("buildPhantomBrowseUrl encodes nested URL characters without dropping existing query params", () => {
-  const targetUrl =
-    "https://thisyear.earth/pledges?name=Ada%20Lovelace&next=%2Fledger%3Fcluster%3Dtestnet#pledge";
-  const refUrl = "https://thisyear.earth";
-
-  const deeplink = buildPhantomBrowseUrl(targetUrl, refUrl);
-
-  assert.equal(
-    deeplink,
-    `https://phantom.app/ul/browse/${encodeURIComponent(targetUrl)}?ref=${encodeURIComponent(refUrl)}`,
+  const metadata = buildPledgeMintMetadataFromSignature(
+    txHash,
+    walletAddress,
+    memo,
   );
-});
 
-test("buildPhantomBrowseTargetUrl applies handoff params and replaces the hash", () => {
-  const targetUrl = buildPhantomBrowseTargetUrl(
-    "https://thisyear.earth/?utm_source=safari#final",
-    "pledge",
-    {
-      ewPledgeDraft: '{"choice":"vote"}',
-      removeMe: null,
-    },
-  );
-  const target = new URL(targetUrl);
-
-  assert.equal(target.origin, "https://thisyear.earth");
-  assert.equal(target.searchParams.get("utm_source"), "safari");
-  assert.equal(target.searchParams.get("ewPledgeDraft"), '{"choice":"vote"}');
-  assert.equal(target.searchParams.has("removeMe"), false);
-  assert.equal(target.hash, "#pledge");
+  assert.equal(metadata.txHash, txHash);
+  assert.equal(metadata.walletAddress, walletAddress);
+  assert.equal(metadata.memo, memo);
+  assert.equal(metadata.network, SOLANA_NETWORK);
+  assert.equal(metadata.memoProgramId, SOLANA_MEMO_PROGRAM_ID);
+  assert.equal(metadata.explorerUrl, getSolanaDevnetExplorerUrl(txHash));
+  assert.equal(Number.isFinite(Date.parse(metadata.mintedAt)), true);
 });
