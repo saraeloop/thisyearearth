@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
-  PLEDGE_COUNT_CACHE_TAG,
-  cachedCountPledges,
+  MINTED_PLEDGE_COUNT_CACHE_TAG,
+  TOTAL_PLEDGE_COUNT_CACHE_TAG,
+  cachedCountMintedPledges,
+  cachedCountTotalPledges,
   insertPledge,
   listMintedPledges,
 } from "@/lib/db/pledges";
@@ -12,6 +14,12 @@ import type { Pledge } from "@/types";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import { revalidateTag } from "next/cache";
 import { normalizePledgeMintMetadata } from "@/lib/solana/pledgeMintMetadata";
+import { verifyPledgeMintOnChain } from "@/lib/solana/verifyMint";
+import {
+  checkRateLimit,
+  PLEDGE_WRITE_RATE_LIMIT,
+  rateLimitResponse,
+} from "@/lib/rateLimit";
 
 function optionalCoordinate(value: unknown, min: number, max: number): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -21,15 +29,24 @@ function optionalCoordinate(value: unknown, min: number, max: number): number | 
 }
 
 export async function GET(req: NextRequest) {
-  const count = await cachedCountPledges();
+  const [totalCount, mintedCount] = await Promise.all([
+    cachedCountTotalPledges(),
+    cachedCountMintedPledges(),
+  ]);
   if (req.nextUrl.searchParams.get("ledger") !== "1") {
-    return NextResponse.json({ count });
+    return NextResponse.json({
+      totalCount,
+      mintedCount,
+      counts: { total: totalCount, minted: mintedCount },
+    });
   }
 
   const limit = Number(req.nextUrl.searchParams.get("limit") ?? 50);
   const pledges = await listMintedPledges(Number.isFinite(limit) ? limit : 50);
   return NextResponse.json({
-    count,
+    totalCount,
+    mintedCount,
+    counts: { total: totalCount, minted: mintedCount },
     pledges: pledges.map((pledge) => ({
       id: pledge.id,
       pledgeText: pledge.pledgeText,
@@ -52,6 +69,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, PLEDGE_WRITE_RATE_LIMIT);
+  if (!rateLimit.ok) return rateLimitResponse(rateLimit);
+
   let body: {
     pledge_text?: unknown;
     text?: unknown;
@@ -100,9 +120,27 @@ export async function POST(req: NextRequest) {
         })
       : null;
 
-  const mint = normalizePledgeMintMetadata(body.mint, pledgeText);
+  let mint = normalizePledgeMintMetadata(body.mint, pledgeText);
   if (body.mint !== undefined && !mint) {
     return NextResponse.json({ error: "invalid mint metadata" }, { status: 400 });
+  }
+  if (mint) {
+    try {
+      const verification = await verifyPledgeMintOnChain(mint, pledgeText);
+      if (!verification.ok) {
+        return NextResponse.json(
+          { error: verification.error },
+          { status: verification.status },
+        );
+      }
+      mint = verification.metadata;
+    } catch (error) {
+      console.error("Failed to verify Solana mint", error);
+      return NextResponse.json(
+        { error: "mint verification unavailable" },
+        { status: 502 },
+      );
+    }
   }
   const co2PpmAtMint = mint ? (await fetchLatestCo2()).ppm : null;
   let saved: Awaited<ReturnType<typeof insertPledge>>;
@@ -119,7 +157,8 @@ export async function POST(req: NextRequest) {
     console.error("Failed to insert pledge", error);
     return NextResponse.json({ error: "pledge storage failed" }, { status: 500 });
   }
-  revalidateTag(PLEDGE_COUNT_CACHE_TAG, { expire: 0 });
+  revalidateTag(TOTAL_PLEDGE_COUNT_CACHE_TAG, { expire: 0 });
+  revalidateTag(MINTED_PLEDGE_COUNT_CACHE_TAG, { expire: 0 });
 
   if (location) {
     const locationCountry =

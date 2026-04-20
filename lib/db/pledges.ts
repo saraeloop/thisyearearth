@@ -3,7 +3,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import type { PledgeMintMetadata, SolanaNetwork } from "@/lib/solana/mint";
 
-export const PLEDGE_COUNT_CACHE_TAG = "pledge-count";
+export const TOTAL_PLEDGE_COUNT_CACHE_TAG = "pledge-count-total";
+export const MINTED_PLEDGE_COUNT_CACHE_TAG = "pledge-count-minted";
 
 export type MintStatus = "none" | "minted";
 
@@ -160,12 +161,28 @@ export async function insertPledge(input: InsertPledgeInput): Promise<PledgeRow>
   return mapPledgeRow(saved);
 }
 
-export async function countPledges(): Promise<number> {
+export async function countTotalPledges(): Promise<number> {
   const sql = getSql();
   if (!sql) return memoryStore.length;
   const rows = (await sql`SELECT COUNT(*)::int AS n FROM pledges`) as {
     n: number;
   }[];
+  return rows[0]?.n ?? 0;
+}
+
+export async function countMintedPledges(): Promise<number> {
+  const sql = getSql();
+  if (!sql) {
+    return memoryStore.filter(
+      (pledge) => pledge.mintStatus === "minted" && pledge.txHash,
+    ).length;
+  }
+
+  const rows = (await sql`
+    SELECT COUNT(*)::int AS n
+    FROM pledges
+    WHERE mint_status = 'minted' AND tx_hash IS NOT NULL
+  `) as { n: number }[];
   return rows[0]?.n ?? 0;
 }
 
@@ -204,9 +221,16 @@ export async function listMintedPledges(limit = 50): Promise<PledgeRow[]> {
   return rows.map(mapPledgeRow);
 }
 
-export async function cachedCountPledges(): Promise<number> {
+export async function cachedCountTotalPledges(): Promise<number> {
   "use cache";
-  cacheTag(PLEDGE_COUNT_CACHE_TAG);
+  cacheTag(TOTAL_PLEDGE_COUNT_CACHE_TAG);
   cacheLife({ stale: 30, revalidate: 30, expire: 60 });
-  return countPledges();
+  return countTotalPledges();
+}
+
+export async function cachedCountMintedPledges(): Promise<number> {
+  "use cache";
+  cacheTag(MINTED_PLEDGE_COUNT_CACHE_TAG);
+  cacheLife({ stale: 30, revalidate: 30, expire: 60 });
+  return countMintedPledges();
 }

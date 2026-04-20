@@ -89,6 +89,18 @@ test("rejects invalid mint metadata before saving a pledge", () => {
       {
         txHash: VALID_SIGNATURE,
         walletAddress: VALID_WALLET,
+        network: SOLANA_NETWORK === "devnet" ? "testnet" : "devnet",
+        mintedAt: VALID_MINTED_AT,
+      },
+      PLEDGE_TEXT,
+    ),
+    null,
+  );
+  assert.equal(
+    normalizePledgeMintMetadata(
+      {
+        txHash: VALID_SIGNATURE,
+        walletAddress: VALID_WALLET,
         mintedAt: "not a date",
       },
       PLEDGE_TEXT,
