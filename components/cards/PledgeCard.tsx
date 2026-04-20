@@ -10,6 +10,7 @@ import { useMintPledge } from "@/hooks/usePledge";
 import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import { SOLANA_NETWORK } from "@/lib/solana/mint";
+import { CARD_IDS } from "@/constants/cards";
 import {
   getWalletProviderAvailability,
   openCurrentPageInPhantom,
@@ -40,6 +41,7 @@ type PledgeDraft = {
   name: string;
   country: string;
   writing: boolean;
+  returnUrl: string | null;
 };
 
 function sanitizeDraftString(value: unknown, maxLength: number) {
@@ -61,12 +63,19 @@ function readPledgeDraftFromUrl(): PledgeDraft | null {
         : null;
     const custom = sanitizeDraftString(parsed.custom, PLEDGE_TEXT_MAX_LENGTH);
     const writing = parsed.writing === true && custom.trim().length > 0;
+    const returnUrl =
+      typeof parsed.returnUrl === "string"
+        ? new URL(parsed.returnUrl, window.location.origin)
+        : null;
+    const safeReturnUrl =
+      returnUrl?.origin === window.location.origin ? returnUrl.toString() : null;
     return {
       choice: writing ? null : choice,
       custom: writing ? custom : "",
       name: sanitizeDraftString(parsed.name, 80),
       country: sanitizeDraftString(parsed.country, 80),
       writing,
+      returnUrl: safeReturnUrl,
     };
   } catch {
     return null;
@@ -83,6 +92,20 @@ function clearPledgeDraftFromUrl() {
 
 function serializePledgeDraft(draft: PledgeDraft) {
   return JSON.stringify(draft);
+}
+
+function getNextCardId(cardId: (typeof CARD_IDS)[number]) {
+  const currentIndex = CARD_IDS.indexOf(cardId);
+  return CARD_IDS[currentIndex + 1] ?? CARD_IDS[0];
+}
+
+function buildBrowserResumeUrl(currentCardId: (typeof CARD_IDS)[number]) {
+  if (typeof window === "undefined") return null;
+  const url = new URL(window.location.href);
+  url.searchParams.delete(PHANTOM_PLEDGE_DRAFT_PARAM);
+  url.searchParams.set("ewResume", getNextCardId(currentCardId));
+  url.hash = "";
+  return url.toString();
 }
 
 export function PledgeCard({
@@ -167,6 +190,7 @@ export function PledgeCard({
           name,
           country: whereFrom,
           writing,
+          returnUrl: buildBrowserResumeUrl("pledge"),
         }),
       });
       return;
@@ -569,6 +593,7 @@ export function PledgeCard({
             "a small thing"
           }
           txHash={userPledge?.txHash}
+          returnHref={initialDraft?.returnUrl ?? null}
           onNext={onNext}
         />
       )}
