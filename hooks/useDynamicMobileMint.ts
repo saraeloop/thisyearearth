@@ -86,7 +86,7 @@ export function useDynamicMobileMint({
   saveMinted,
   onComplete,
 }: UseDynamicMobileMintOptions) {
-  const { primaryWallet, sdkHasLoaded, setShowAuthFlow } = useDynamicContext();
+  const { primaryWallet, sdkHasLoaded } = useDynamicContext();
   const { selectWalletOption, walletOptions } = useWalletOptions();
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -213,15 +213,18 @@ export function useDynamicMobileMint({
           }
         }
 
-        setShowAuthFlow(true);
+        setError(
+          "Phantom mobile redirect is not available. Enable Phantom for Solana in Dynamic.",
+        );
       } catch (e) {
         const message = e instanceof Error ? e.message : "";
         if (message.includes("No wallet found with key")) {
-          setError(null);
+          setError(
+            "Phantom mobile redirect is not available. Enable Phantom for Solana in Dynamic.",
+          );
         } else {
           setError(message || "Open Phantom to approve the mint.");
         }
-        setShowAuthFlow(true);
       } finally {
         setMinting(false);
       }
@@ -230,7 +233,6 @@ export function useDynamicMobileMint({
       primaryWallet,
       sdkHasLoaded,
       selectWalletOption,
-      setShowAuthFlow,
       signPendingWithWallet,
       walletOptions,
     ],
