@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PALETTE, FONTS, ACCENTS } from "@/constants/colors";
 import type { CardCommonProps, Location, Pledge } from "@/types";
 import { CardShell } from "./CardShell";
@@ -10,6 +10,11 @@ import { useMintPledge } from "@/hooks/usePledge";
 import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
 import { SOLANA_NETWORK } from "@/lib/solana/mint";
+import {
+  getWalletProviderAvailability,
+  openCurrentPageInPhantom,
+  type WalletProviderAvailability,
+} from "@/lib/solana/wallet";
 
 type PledgeCardProps = CardCommonProps & {
   userPledge: Pledge | null;
@@ -41,6 +46,8 @@ export function PledgeCard({
   const [name, setName] = useState(userPledge?.name ?? "");
   const [whereFrom, setWhereFrom] = useState(userPledge?.country ?? "");
   const [writing, setWriting] = useState(false);
+  const [walletAvailability, setWalletAvailability] =
+    useState<WalletProviderAvailability>("missing");
   const { mint, record, minting, error } = useMintPledge();
   const isDesktop = useMediaMin(1024);
   const isPhone = useMediaMax(767);
@@ -53,8 +60,42 @@ export function PledgeCard({
   }, [writing, custom, choice]);
 
   const canMint = writing ? custom.trim().length >= PLEDGE_TEXT_MIN_LENGTH : !!choice;
+  const needsPhantomMobile = walletAvailability === "mobile-no-provider";
+  const missingDesktopWallet = walletAvailability === "missing";
+  const mintButtonDisabled = needsPhantomMobile ? false : !canMint;
+  const mintButtonLabel = needsPhantomMobile
+    ? "Open in Phantom →"
+    : "Mint to the ledger →";
+  const mintHint = needsPhantomMobile
+    ? "Open in Phantom to mint on Solana"
+    : missingDesktopWallet
+      ? "Install Phantom or Solflare to mint"
+      : `Solana ${SOLANA_NETWORK} is optional`;
+
+  useEffect(() => {
+    const updateWalletAvailability = () => {
+      setWalletAvailability(getWalletProviderAvailability());
+    };
+
+    updateWalletAvailability();
+    const refreshTimers = [
+      window.setTimeout(updateWalletAvailability, 250),
+      window.setTimeout(updateWalletAvailability, 1000),
+    ];
+    window.addEventListener("focus", updateWalletAvailability);
+    document.addEventListener("visibilitychange", updateWalletAvailability);
+    return () => {
+      refreshTimers.forEach(window.clearTimeout);
+      window.removeEventListener("focus", updateWalletAvailability);
+      document.removeEventListener("visibilitychange", updateWalletAvailability);
+    };
+  }, []);
 
   const handleMint = async () => {
+    if (needsPhantomMobile) {
+      openCurrentPageInPhantom();
+      return;
+    }
     if (!canMint) return;
     const result = await mint(pledgeText, {
       name: name.trim() || null,
@@ -379,8 +420,9 @@ export function PledgeCard({
           >
             <MintButton
               accent={accent}
-              disabled={!canMint}
+              disabled={mintButtonDisabled}
               minting={minting}
+              label={mintButtonLabel}
               onClick={handleMint}
             />
             <button
@@ -422,7 +464,7 @@ export function PledgeCard({
                 color: PALETTE.ASH_DIMMER,
               }}
             >
-              Solana {SOLANA_NETWORK} is optional
+              {mintHint}
             </div>
             {error && (
               <div

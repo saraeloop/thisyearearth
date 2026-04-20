@@ -9,10 +9,19 @@ type MintButtonProps = {
   accent: Accent;
   disabled?: boolean;
   minting?: boolean;
+  label?: string;
+  mintingLabel?: string;
   onClick: () => void;
 };
 
-export function MintButton({ accent, disabled, minting, onClick }: MintButtonProps) {
+export function MintButton({
+  accent,
+  disabled,
+  minting,
+  label = "Mint to the ledger →",
+  mintingLabel = "Writing to ledger…",
+  onClick,
+}: MintButtonProps) {
   const isDesktop = useMediaMin(1024);
   const active = !disabled && !minting;
   return (
@@ -44,7 +53,7 @@ export function MintButton({ accent, disabled, minting, onClick }: MintButtonPro
         transition: "all 0.3s ease",
       }}
     >
-      {minting ? "Writing to ledger…" : "Mint to the ledger →"}
+      {minting ? mintingLabel : label}
     </motion.button>
   );
 }
