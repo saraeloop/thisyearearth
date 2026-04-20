@@ -23,6 +23,7 @@ export function DynamicWalletProvider({ children }: DynamicWalletProviderProps) 
     <DynamicContextProvider
       settings={{
         environmentId: DYNAMIC_ENVIRONMENT_ID,
+        enableConnectOnlyFallback: true,
         initialAuthenticationMode: "connect-only",
         mobileExperience: "redirect",
         redirectUrl,
