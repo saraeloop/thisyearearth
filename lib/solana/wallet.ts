@@ -24,7 +24,12 @@ import { encodeBase58, normalizeWalletSignature } from "./signature";
 
 const MIN_TEST_CLUSTER_FEE_LAMPORTS = 10_000;
 const TEST_CLUSTER_AIRDROP_LAMPORTS = Math.floor(0.05 * LAMPORTS_PER_SOL);
+const PHANTOM_BROWSE_BASE_URL = "https://phantom.app/ul/browse";
 type SolanaTransaction = Transaction | VersionedTransaction;
+export type WalletProviderAvailability =
+  | "injected"
+  | "mobile-no-provider"
+  | "missing";
 
 type WalletConnectResult = {
   publicKey?: { toString: () => string };
@@ -59,6 +64,38 @@ declare global {
 function getBrowserWalletProvider() {
   if (typeof window === "undefined") return null;
   return window.phantom?.solana ?? window.solana ?? null;
+}
+
+function isMobileBrowser() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isTouchMac =
+    navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  return (
+    isTouchMac ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(
+      ua,
+    )
+  );
+}
+
+export function getWalletProviderAvailability(): WalletProviderAvailability {
+  if (getBrowserWalletProvider()) return "injected";
+  return isMobileBrowser() ? "mobile-no-provider" : "missing";
+}
+
+export function buildPhantomBrowseUrl(targetUrl: string, refUrl?: string) {
+  const ref =
+    refUrl ??
+    (typeof window !== "undefined" ? window.location.origin : targetUrl);
+  return `${PHANTOM_BROWSE_BASE_URL}/${encodeURIComponent(targetUrl)}?ref=${encodeURIComponent(ref)}`;
+}
+
+export function openCurrentPageInPhantom(hash = "pledge") {
+  if (typeof window === "undefined") return;
+  const target = new URL(window.location.href);
+  target.hash = hash;
+  window.location.assign(buildPhantomBrowseUrl(target.toString()));
 }
 
 function logSolanaDebug(
@@ -188,6 +225,9 @@ export async function mintPledgeOnSolana(
 ): Promise<PledgeMintMetadata> {
   const provider = getBrowserWalletProvider();
   if (!provider) {
+    if (isMobileBrowser()) {
+      throw new Error("Open this page in Phantom to mint on Solana.");
+    }
     throw new Error("Install Phantom or Solflare to mint on Solana.");
   }
 

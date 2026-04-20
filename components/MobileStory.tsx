@@ -34,6 +34,18 @@ function clampIndex(n: number): number {
   return Math.min(Math.max(Math.trunc(n), 0), TOTAL_CARDS - 1);
 }
 
+function getHashCardIndex() {
+  if (typeof window === "undefined") return -1;
+  const hashCardId = window.location.hash.replace(/^#/, "");
+  return CARD_IDS.findIndex((id) => id === hashCardId);
+}
+
+function clearHashFromUrl() {
+  if (typeof window === "undefined" || !window.location.hash) return;
+  const { pathname, search } = window.location;
+  window.history.replaceState(null, "", `${pathname}${search}`);
+}
+
 export function MobileStory({ tweaks }: MobileStoryProps) {
   const [active, setActive] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
@@ -52,10 +64,17 @@ export function MobileStory({ tweaks }: MobileStoryProps) {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
+      const hashIndex = getHashCardIndex();
+      if (hashIndex >= 0) {
+        setActive(hashIndex);
+        clearHashFromUrl();
+        setRestoredActive(true);
+        return;
+      }
       const raw = window.localStorage.getItem(ACTIVE_STORAGE_KEY);
       const parsed = raw ? Number.parseInt(raw, 10) : 0;
       setActive(clampIndex(parsed));
