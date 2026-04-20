@@ -6,6 +6,7 @@ import { LargeGrain, GrainTexture } from '@/components/ui/Grain';
 import { LEDGER_CSS_VARS } from '@/constants/colors';
 import type { PledgeRow } from '@/lib/db/pledges';
 import {
+  countLedgerEntries,
   formatLedgerDate,
   ledgerCountryLabel,
   ledgerExplorerHref,
@@ -157,8 +158,7 @@ async function LedgerCount() {
 
   let count: number | null = null;
   try {
-    const pledges = await listLedgerEntries(LEDGER_LIMIT);
-    count = pledges.length;
+    count = await countLedgerEntries();
   } catch {
     count = null;
   }

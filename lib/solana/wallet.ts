@@ -2,10 +2,11 @@
 
 import {
   Connection,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SendTransactionError,
+  Transaction,
   TransactionInstruction,
-  TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
 import { Buffer } from "buffer";
@@ -22,6 +23,8 @@ import {
 import { encodeBase58, normalizeWalletSignature } from "./signature";
 
 const MIN_TEST_CLUSTER_FEE_LAMPORTS = 10_000;
+const TEST_CLUSTER_AIRDROP_LAMPORTS = Math.floor(0.05 * LAMPORTS_PER_SOL);
+type SolanaTransaction = Transaction | VersionedTransaction;
 
 type WalletConnectResult = {
   publicKey?: { toString: () => string };
@@ -32,11 +35,11 @@ type SolanaWalletProvider = {
   publicKey?: { toString: () => string };
   connect: () => Promise<WalletConnectResult>;
   signAndSendTransaction?: (
-    transaction: VersionedTransaction,
+    transaction: SolanaTransaction,
   ) => Promise<{ signature: string | Uint8Array | number[] }>;
   signTransaction?: (
-    transaction: VersionedTransaction,
-  ) => Promise<VersionedTransaction>;
+    transaction: SolanaTransaction,
+  ) => Promise<SolanaTransaction>;
 };
 
 declare global {
@@ -85,6 +88,13 @@ function isAlreadyProcessedError(error: unknown) {
   return getErrorMessage(error).toLowerCase().includes("already been processed");
 }
 
+function firstTransactionSignature(transaction: SolanaTransaction) {
+  if (transaction instanceof VersionedTransaction) {
+    return transaction.signatures[0] ?? null;
+  }
+  return transaction.signatures[0]?.signature ?? null;
+}
+
 async function logSolanaError(
   scope: string,
   error: unknown,
@@ -125,7 +135,55 @@ async function connectWallet(provider: SolanaWalletProvider) {
   return publicKey;
 }
 
-export async function mintPledgeOnDevnet(
+async function ensureTestClusterFeeBalance(
+  connection: Connection,
+  feePayer: PublicKey,
+) {
+  const balance = await connection.getBalance(feePayer, "confirmed");
+  if (balance >= MIN_TEST_CLUSTER_FEE_LAMPORTS) return balance;
+
+  try {
+    const signature = await connection.requestAirdrop(
+      feePayer,
+      TEST_CLUSTER_AIRDROP_LAMPORTS,
+    );
+    const latestBlockhash = await connection.getLatestBlockhash("confirmed");
+    await connection.confirmTransaction(
+      { signature, ...latestBlockhash },
+      "confirmed",
+    );
+  } catch (error) {
+    await logSolanaError("airdrop", error, connection);
+    throw new Error(
+      `${SOLANA_NETWORK} faucet is unavailable. Add ${SOLANA_NETWORK} SOL in Phantom and try again.`,
+    );
+  }
+
+  const refreshedBalance = await connection.getBalance(feePayer, "confirmed");
+  if (refreshedBalance < MIN_TEST_CLUSTER_FEE_LAMPORTS) {
+    throw new Error(
+      `Wallet needs ${SOLANA_NETWORK} SOL before minting. Add ${SOLANA_NETWORK} SOL in Phantom and try again.`,
+    );
+  }
+  return refreshedBalance;
+}
+
+async function assertLocalSimulationPasses(
+  connection: Connection,
+  transaction: Transaction,
+) {
+  const simulation = await connection.simulateTransaction(transaction);
+  logSolanaDebug("simulate", {
+    err: simulation.value.err,
+    logs: simulation.value.logs,
+    unitsConsumed: simulation.value.unitsConsumed,
+  });
+  if (simulation.value.err) {
+    throw new Error("Solana simulation failed before wallet signing.");
+  }
+}
+
+export async function mintPledgeOnSolana(
   pledgeText: string,
 ): Promise<PledgeMintMetadata> {
   const provider = getBrowserWalletProvider();
@@ -136,12 +194,7 @@ export async function mintPledgeOnDevnet(
   const walletAddress = await connectWallet(provider);
   const connection = new Connection(SOLANA_RPC_URL, "confirmed");
   const feePayer = new PublicKey(walletAddress);
-  const balance = await connection.getBalance(feePayer, "confirmed");
-  if (balance < MIN_TEST_CLUSTER_FEE_LAMPORTS) {
-    throw new Error(
-      `Wallet needs ${SOLANA_NETWORK} SOL before minting. Add ${SOLANA_NETWORK} SOL in Phantom and try again.`,
-    );
-  }
+  const balance = await ensureTestClusterFeeBalance(connection, feePayer);
 
   const memo = buildPledgeMemo(pledgeText);
   const memoPayload = Buffer.from(new TextEncoder().encode(memo));
@@ -152,12 +205,11 @@ export async function mintPledgeOnDevnet(
     programId: new PublicKey(SOLANA_MEMO_PROGRAM_ID),
     data: memoPayload,
   });
-  const message = new TransactionMessage({
-    payerKey: feePayer,
+
+  const transaction = new Transaction({
+    feePayer,
     recentBlockhash: latestBlockhash.blockhash,
-    instructions: [memoInstruction],
-  }).compileToV0Message();
-  const transaction = new VersionedTransaction(message);
+  }).add(memoInstruction);
 
   logSolanaDebug("prepare", {
     walletAddress,
@@ -171,17 +223,19 @@ export async function mintPledgeOnDevnet(
     memo,
     memoBytes: memoPayload.length,
     debugMemo: SOLANA_DEBUG_MEMO_ENABLED,
-    transactionVersion: 0,
+    transactionVersion: "legacy",
     instructionProgramIds: [memoInstruction.programId.toBase58()],
-    instructionKeys: [memoInstruction.keys],
+    instructionKeys: memoInstruction.keys.map((key) => ({
+      pubkey: key.pubkey.toBase58(),
+      isSigner: key.isSigner,
+      isWritable: key.isWritable,
+    })),
   });
+  await assertLocalSimulationPasses(connection, transaction);
 
   let txHash: string;
   try {
-    if (provider.signAndSendTransaction) {
-      const result = await provider.signAndSendTransaction(transaction);
-      txHash = normalizeWalletSignature(result.signature);
-    } else if (provider.signTransaction) {
+    if (provider.signTransaction) {
       const signed = await provider.signTransaction(transaction);
       try {
         txHash = await connection.sendRawTransaction(signed.serialize(), {
@@ -189,13 +243,16 @@ export async function mintPledgeOnDevnet(
           maxRetries: 3,
         });
       } catch (error) {
-        const signature = signed.signatures[0];
+        const signature = firstTransactionSignature(signed);
         if (isAlreadyProcessedError(error) && signature) {
           txHash = encodeBase58(signature);
         } else {
           throw error;
         }
       }
+    } else if (provider.signAndSendTransaction) {
+      const result = await provider.signAndSendTransaction(transaction);
+      txHash = normalizeWalletSignature(result.signature);
     } else {
       throw new Error("Wallet does not support transaction signing.");
     }

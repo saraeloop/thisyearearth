@@ -9,6 +9,7 @@ import { MintButton } from "@/components/ui/MintButton";
 import { useMintPledge } from "@/hooks/usePledge";
 import { useMediaMax, useMediaMin } from "@/hooks/useBreakpoint";
 import { PLEDGE_TEXT_MAX_LENGTH, PLEDGE_TEXT_MIN_LENGTH } from "@/constants/pledge";
+import { SOLANA_NETWORK } from "@/lib/solana/mint";
 
 type PledgeCardProps = CardCommonProps & {
   userPledge: Pledge | null;
@@ -422,7 +423,7 @@ export function PledgeCard({
                 color: PALETTE.ASH_DIMMER,
               }}
             >
-              Solana devnet is optional
+              Solana {SOLANA_NETWORK} is optional
             </div>
             {error && (
               <div

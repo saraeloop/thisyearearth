@@ -1,10 +1,18 @@
-import { listMintedPledges, type PledgeRow } from "@/lib/db/pledges";
+import {
+  cachedCountMintedPledges,
+  listMintedPledges,
+  type PledgeRow,
+} from "@/lib/db/pledges";
 import { getSolanaDevnetExplorerUrl } from "@/lib/solana/mint";
 
 export const LEDGER_LIMIT = 100;
 
 export async function listLedgerEntries(limit = LEDGER_LIMIT) {
   return listMintedPledges(limit);
+}
+
+export async function countLedgerEntries() {
+  return cachedCountMintedPledges();
 }
 
 export function formatLedgerDate(value: Date | string | null) {

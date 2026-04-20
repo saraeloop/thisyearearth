@@ -6,7 +6,7 @@ import type { CardCommonProps, Location, Pledge } from '@/types';
 import { VOICE_QUOTES } from '@/constants/quotes';
 import { CardShell } from './CardShell';
 import { FinalGlobe } from './FinalGlobe';
-import { usePledgeCount } from '@/hooks/usePledge';
+import { useMintedPledgeCount } from '@/hooks/usePledge';
 import { ENDPOINTS } from '@/constants/endpoints';
 import { useMediaMin } from '@/hooks/useBreakpoint';
 
@@ -61,7 +61,7 @@ export function FinalCard({
   userLocation,
   userPledge,
 }: FinalCardProps) {
-  const pledgeCount = usePledgeCount();
+  const mintedPledgeCount = useMintedPledgeCount();
   const [globeLocations, setGlobeLocations] = useState<Location[]>([]);
   const isDesktop = useMediaMin(1024);
   const closingLine = VOICE_QUOTES.final?.[voiceTone] ?? '';
@@ -187,7 +187,7 @@ export function FinalCard({
             textShadow: `0 0 30px ${accent.glow}`,
           }}
         >
-          {pledgeCount.toLocaleString()}
+          {mintedPledgeCount.toLocaleString()}
         </div>
         {userPledge?.minted && (
           <div

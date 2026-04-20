@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { recentLocations, recordLocation } from "@/lib/db/locations";
+import {
+  checkRateLimit,
+  LOCATION_WRITE_RATE_LIMIT,
+  rateLimitResponse,
+} from "@/lib/rateLimit";
 
 function optionalCoordinate(value: unknown, min: number, max: number): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -15,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const rateLimit = checkRateLimit(req, LOCATION_WRITE_RATE_LIMIT);
+  if (!rateLimit.ok) return rateLimitResponse(rateLimit);
+
   let body: {
     country?: unknown;
     country_code?: unknown;

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ENDPOINTS } from "@/constants/endpoints";
 import type { Pledge } from "@/types";
-import { mintPledgeOnDevnet } from "@/lib/solana/wallet";
+import { mintPledgeOnSolana } from "@/lib/solana/wallet";
 import type { PledgeMintMetadata } from "@/lib/solana/mint";
 
 const SESSION_LOCATION_KEY = "thisyearearth:session-location";
@@ -33,32 +33,55 @@ async function getApiErrorMessage(res: Response) {
   return res.statusText || `HTTP ${res.status}`;
 }
 
-export function usePledgeCount(pollMs = 30_000) {
-  const [count, setCount] = useState(0);
+type PledgeCounts = {
+  total: number;
+  minted: number;
+};
+
+export function usePledgeCounts(pollMs = 30_000) {
+  const [counts, setCounts] = useState<PledgeCounts>({ total: 0, minted: 0 });
 
   useEffect(() => {
     let cancelled = false;
 
-    const loadCount = async () => {
+    const loadCounts = async () => {
       try {
         const res = await fetch(ENDPOINTS.PLEDGES);
         if (!res.ok) return;
-        const data = (await res.json()) as { count: number };
-        if (!cancelled) setCount(data.count);
+        const data = (await res.json()) as {
+          totalCount: number;
+          mintedCount: number;
+        };
+        if (
+          typeof data.totalCount !== "number" ||
+          typeof data.mintedCount !== "number"
+        ) {
+          return;
+        }
+        if (!cancelled) {
+          setCounts({
+            total: data.totalCount,
+            minted: data.mintedCount,
+          });
+        }
       } catch {
         // ignore
       }
     };
 
-    void loadCount();
-    const id = setInterval(loadCount, pollMs);
+    void loadCounts();
+    const id = setInterval(loadCounts, pollMs);
     return () => {
       cancelled = true;
       clearInterval(id);
     };
   }, [pollMs]);
 
-  return count;
+  return counts;
+}
+
+export function useMintedPledgeCount(pollMs = 30_000) {
+  return usePledgeCounts(pollMs).minted;
 }
 
 function readSessionLocation(): SessionLocation | null {
@@ -147,7 +170,7 @@ export function useMintPledge() {
       setError(null);
       let mintMetadata: PledgeMintMetadata | null = null;
       try {
-        mintMetadata = await mintPledgeOnDevnet(text);
+        mintMetadata = await mintPledgeOnSolana(text);
         await ensureSessionLocationSaved();
         return postPledge(text, metadata, mintMetadata);
       } catch (e) {

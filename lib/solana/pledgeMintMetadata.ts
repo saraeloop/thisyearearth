@@ -21,6 +21,7 @@ export function normalizePledgeMintMetadata(
   ) {
     return null;
   }
+  if (mint.network !== undefined && mint.network !== SOLANA_NETWORK) return null;
 
   const metadata: PledgeMintMetadata = {
     txHash: mint.txHash,
