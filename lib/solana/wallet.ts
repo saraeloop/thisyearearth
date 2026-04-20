@@ -24,12 +24,23 @@ import { encodeBase58, normalizeWalletSignature } from "./signature";
 
 const MIN_TEST_CLUSTER_FEE_LAMPORTS = 10_000;
 const TEST_CLUSTER_AIRDROP_LAMPORTS = Math.floor(0.05 * LAMPORTS_PER_SOL);
-const PHANTOM_BROWSE_BASE_URL = "https://phantom.app/ul/browse";
 type SolanaTransaction = Transaction | VersionedTransaction;
 export type WalletProviderAvailability =
   | "injected"
   | "mobile-no-provider"
   | "missing";
+
+export type PledgeMintConfirmation = {
+  blockhash: string;
+  lastValidBlockHeight: number;
+};
+
+export type PreparedPledgeMintTransaction = {
+  transaction: Transaction;
+  walletAddress: string;
+  memo: string;
+  confirmation: PledgeMintConfirmation;
+};
 
 type WalletConnectResult = {
   publicKey?: { toString: () => string };
@@ -47,26 +58,20 @@ type SolanaWalletProvider = {
   ) => Promise<SolanaTransaction>;
 };
 
-declare global {
-  interface Window {
-    solana?: SolanaWalletProvider & {
-      isPhantom?: boolean;
-      isSolflare?: boolean;
-    };
-    phantom?: {
-      solana?: SolanaWalletProvider & {
-        isPhantom?: boolean;
-      };
-    };
-  }
-}
+type SolanaProviderWindow = Window & {
+  solana?: SolanaWalletProvider;
+  phantom?: {
+    solana?: SolanaWalletProvider;
+  };
+};
 
 function getBrowserWalletProvider() {
   if (typeof window === "undefined") return null;
-  return window.phantom?.solana ?? window.solana ?? null;
+  const solanaWindow = window as SolanaProviderWindow;
+  return solanaWindow.phantom?.solana ?? solanaWindow.solana ?? null;
 }
 
-function isMobileBrowser() {
+export function isMobileBrowser() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
   const isTouchMac =
@@ -82,43 +87,6 @@ function isMobileBrowser() {
 export function getWalletProviderAvailability(): WalletProviderAvailability {
   if (getBrowserWalletProvider()) return "injected";
   return isMobileBrowser() ? "mobile-no-provider" : "missing";
-}
-
-export function buildPhantomBrowseUrl(targetUrl: string, refUrl?: string) {
-  const ref =
-    refUrl ??
-    (typeof window !== "undefined" ? window.location.origin : targetUrl);
-  return `${PHANTOM_BROWSE_BASE_URL}/${encodeURIComponent(targetUrl)}?ref=${encodeURIComponent(ref)}`;
-}
-
-export function buildPhantomBrowseTargetUrl(
-  currentUrl: string,
-  hash = "pledge",
-  searchParams: Record<string, string | null | undefined> = {},
-) {
-  const target = new URL(currentUrl);
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value === null || value === undefined) {
-      target.searchParams.delete(key);
-    } else {
-      target.searchParams.set(key, value);
-    }
-  }
-  target.hash = hash;
-  return target.toString();
-}
-
-export function openCurrentPageInPhantom(
-  hash = "pledge",
-  searchParams: Record<string, string | null | undefined> = {},
-) {
-  if (typeof window === "undefined") return;
-  const targetUrl = buildPhantomBrowseTargetUrl(
-    window.location.href,
-    hash,
-    searchParams,
-  );
-  window.location.assign(buildPhantomBrowseUrl(targetUrl));
 }
 
 function logSolanaDebug(
@@ -243,18 +211,10 @@ async function assertLocalSimulationPasses(
   }
 }
 
-export async function mintPledgeOnSolana(
+export async function preparePledgeMintTransaction(
   pledgeText: string,
-): Promise<PledgeMintMetadata> {
-  const provider = getBrowserWalletProvider();
-  if (!provider) {
-    if (isMobileBrowser()) {
-      throw new Error("Open this page in Phantom to mint on Solana.");
-    }
-    throw new Error("Install Phantom or Solflare to mint on Solana.");
-  }
-
-  const walletAddress = await connectWallet(provider);
+  walletAddress: string,
+): Promise<PreparedPledgeMintTransaction> {
   const connection = new Connection(SOLANA_RPC_URL, "confirmed");
   const feePayer = new PublicKey(walletAddress);
   const balance = await ensureTestClusterFeeBalance(connection, feePayer);
@@ -296,10 +256,72 @@ export async function mintPledgeOnSolana(
   });
   await assertLocalSimulationPasses(connection, transaction);
 
+  return {
+    transaction,
+    walletAddress,
+    memo,
+    confirmation: {
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    },
+  };
+}
+
+export async function confirmPledgeMintSignature(
+  txHash: string,
+  confirmation: PledgeMintConfirmation,
+) {
+  const connection = new Connection(SOLANA_RPC_URL, "confirmed");
+  try {
+    await connection.confirmTransaction(
+      {
+        signature: txHash,
+        blockhash: confirmation.blockhash,
+        lastValidBlockHeight: confirmation.lastValidBlockHeight,
+      },
+      "confirmed",
+    );
+  } catch (error) {
+    await logSolanaError("confirm", error, connection);
+    throw error;
+  }
+}
+
+export function buildPledgeMintMetadataFromSignature(
+  txHash: string,
+  walletAddress: string,
+  memo: string,
+): PledgeMintMetadata {
+  return {
+    txHash,
+    network: SOLANA_NETWORK,
+    walletAddress,
+    memo,
+    memoProgramId: SOLANA_MEMO_PROGRAM_ID,
+    explorerUrl: getSolanaDevnetExplorerUrl(txHash),
+    mintedAt: new Date().toISOString(),
+  };
+}
+
+export async function mintPledgeOnSolana(
+  pledgeText: string,
+): Promise<PledgeMintMetadata> {
+  const provider = getBrowserWalletProvider();
+  if (!provider) {
+    if (isMobileBrowser()) {
+      throw new Error("Open this page in Phantom to mint on Solana.");
+    }
+    throw new Error("Install Phantom or Solflare to mint on Solana.");
+  }
+
+  const walletAddress = await connectWallet(provider);
+  const prepared = await preparePledgeMintTransaction(pledgeText, walletAddress);
+  const connection = new Connection(SOLANA_RPC_URL, "confirmed");
+
   let txHash: string;
   try {
     if (provider.signTransaction) {
-      const signed = await provider.signTransaction(transaction);
+      const signed = await provider.signTransaction(prepared.transaction);
       try {
         txHash = await connection.sendRawTransaction(signed.serialize(), {
           preflightCommitment: "confirmed",
@@ -314,7 +336,7 @@ export async function mintPledgeOnSolana(
         }
       }
     } else if (provider.signAndSendTransaction) {
-      const result = await provider.signAndSendTransaction(transaction);
+      const result = await provider.signAndSendTransaction(prepared.transaction);
       txHash = normalizeWalletSignature(result.signature);
     } else {
       throw new Error("Wallet does not support transaction signing.");
@@ -327,27 +349,10 @@ export async function mintPledgeOnSolana(
     throw error;
   }
 
-  try {
-    await connection.confirmTransaction(
-      {
-        signature: txHash,
-        blockhash: latestBlockhash.blockhash,
-        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-      },
-      "confirmed",
-    );
-  } catch (error) {
-    await logSolanaError("confirm", error, connection);
-    throw error;
-  }
-
-  return {
+  await confirmPledgeMintSignature(txHash, prepared.confirmation);
+  return buildPledgeMintMetadataFromSignature(
     txHash,
-    network: SOLANA_NETWORK,
-    walletAddress,
-    memo,
-    memoProgramId: SOLANA_MEMO_PROGRAM_ID,
-    explorerUrl: getSolanaDevnetExplorerUrl(txHash),
-    mintedAt: new Date().toISOString(),
-  };
+    prepared.walletAddress,
+    prepared.memo,
+  );
 }

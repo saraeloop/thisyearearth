@@ -10,6 +10,9 @@
     "test": "tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js"
   },
   "dependencies": {
+    "@dynamic-labs/sdk-react-core": "^4.77.3",
+    "@dynamic-labs/solana": "^4.77.3",
+    "@dynamic-labs/wallet-connector-core": "^4.77.3",
     "@neondatabase/serverless": "^1.1.0",
     "@solana/web3.js": "^1.98.4",
     "@studio-freight/lenis": "^1.0.42",

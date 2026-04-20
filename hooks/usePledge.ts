@@ -9,14 +9,14 @@ import type { PledgeMintMetadata } from "@/lib/solana/mint";
 const SESSION_LOCATION_KEY = "thisyearearth:session-location";
 const SAVED_LOCATION_KEY = "thisyearearth:session-location-saved";
 
-type PledgeMetadata = {
+export type PledgeMetadata = {
   name?: string | null;
   country?: string | null;
   countryCode?: string | null;
   location?: SessionLocation | null;
 };
 
-type SessionLocation = {
+export type SessionLocation = {
   country: string;
   countryCode: string;
   lat: number;
@@ -184,6 +184,27 @@ export function useMintPledge() {
     [postPledge],
   );
 
+  const saveMinted = useCallback(
+    async (
+      text: string,
+      metadata: PledgeMetadata = {},
+      mintMetadata: PledgeMintMetadata,
+    ): Promise<Pledge | null> => {
+      setMinting(true);
+      setError(null);
+      try {
+        await ensureSessionLocationSaved();
+        return postPledge(text, metadata, mintMetadata);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "pledge save failed");
+        return null;
+      } finally {
+        setMinting(false);
+      }
+    },
+    [postPledge],
+  );
+
   const record = useCallback(
     async (text: string, metadata: PledgeMetadata = {}): Promise<Pledge | null> => {
       setMinting(true);
@@ -201,5 +222,5 @@ export function useMintPledge() {
     [postPledge],
   );
 
-  return { mint, record, minting, error };
+  return { mint, record, saveMinted, minting, error };
 }
