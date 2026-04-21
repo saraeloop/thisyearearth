@@ -3,6 +3,7 @@
 import {
   createDynamicClient,
   initializeClient,
+  onceEvent,
   type DynamicClient,
 } from "@dynamic-labs-sdk/client";
 import {
@@ -19,6 +20,12 @@ const DYNAMIC_ENVIRONMENT_ID =
 let dynamicClient: DynamicClient | null = null;
 let dynamicClientReady: Promise<DynamicClient> | null = null;
 let dynamicClientInitialized = false;
+
+declare global {
+  interface DynamicEvents {
+    phantomRedirectCloseTab: (args: Record<string, never>) => void;
+  }
+}
 
 function getCurrentUrl() {
   return new URL(window.location.href);
@@ -105,6 +112,13 @@ export async function completePendingPhantomRedirect(client: DynamicClient) {
   const currentUrl = getCurrentUrl();
   const isRedirect = await detectPhantomRedirect({ url: currentUrl }, client);
   if (!isRedirect) return false;
+  onceEvent(
+    {
+      event: "phantomRedirectCloseTab",
+      listener: () => window.close(),
+    },
+    client,
+  );
   await completePhantomRedirect({ url: currentUrl }, client);
   return true;
 }
